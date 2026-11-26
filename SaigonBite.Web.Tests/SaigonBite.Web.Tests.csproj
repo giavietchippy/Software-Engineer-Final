@@ -9,6 +9,11 @@
     <RollForward>Major</RollForward>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Web project services use ASP.NET Core Identity's PasswordHasher. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />

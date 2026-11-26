@@ -156,6 +156,20 @@ public sealed class OrderStatusService
         if (actor.Role.IsCustomer() && order.CustomerId != actor.Id)
             return OperationResult.Fail("Only the owning customer can change this order.");
 
+        // A-04 prerequisite: the cap applies at pickup too, not only when Admin assigns the order.
+        if (to == OrderStatus.OutForDelivery && order.Status == OrderStatus.Ready
+            && actor.Role == Role.Shipper)
+        {
+            var activeOut = await (from a in _db.ShipperAssignments.AsNoTracking()
+                                   join o in _db.Orders.AsNoTracking() on a.OrderId equals o.Id
+                                   where a.ShipperId == actor.Id && a.UnassignedAt == null
+                                         && o.Status == OrderStatus.OutForDelivery
+                                   select a.Id).CountAsync();
+            if (activeOut >= ShipperAssignmentService.MaxOutForDelivery)
+                return OperationResult.Fail(
+                    $"This shipper already has {ShipperAssignmentService.MaxOutForDelivery} orders Out for Delivery (A-04).");
+        }
+
         var payment = await _db.Payments.AsNoTracking().FirstOrDefaultAsync(p => p.OrderId == orderId);
         var isCod = payment?.Method == PaymentMethod.Cod;
         var context = new TransitionContext(

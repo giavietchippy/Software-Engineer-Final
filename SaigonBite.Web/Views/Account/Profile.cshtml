@@ -1,0 +1,40 @@
+@model SelfProfileDto?
+@{
+    ViewData["Title"] = "My profile";
+}
+<h1>My profile</h1>
+
+@if (ViewData["Notice"] != null)
+{
+    <div class="alert alert-info">@ViewData["Notice"]</div>
+}
+@if (Model is null)
+{
+    <p>Account not found.</p>
+}
+else
+{
+    <p>Role: <strong>@Model.Role</strong></p>
+    <form asp-action="Profile" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label class="form-label" for="Identifier">Mobile or passport</label>
+            <input class="form-control" id="Identifier" name="Identifier" value="@Model.Identifier" />
+        </div>
+        @if (Model.Role == Role.Tourist)
+        {
+            <div class="mb-3">
+                <label class="form-label" for="Nationality">Nationality</label>
+                <input class="form-control" id="Nationality" name="Nationality" value="@Model.Nationality" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="Email">E-mail</label>
+                <input class="form-control" id="Email" name="Email" value="@Model.Email" />
+            </div>
+        }
+        <div class="mb-3">
+            <label class="form-label" for="Password">New password (optional)</label>
+            <input class="form-control" id="Password" name="Password" type="password" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+}

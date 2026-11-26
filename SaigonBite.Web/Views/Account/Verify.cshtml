@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Verify code";
+}
+<h1>Verify code</h1>
+
+@if (ViewData["Error"] != null)
+{
+    <div class="alert alert-danger">@ViewData["Error"]</div>
+}
+@if (ViewBag.DemoCode != null)
+{
+    <div class="alert alert-info">Demo code (no SMS/e-mail): <strong>@ViewBag.DemoCode</strong></div>
+}
+
+<form asp-action="Verify" method="post" class="col-md-5">
+    <input type="hidden" name="pendingId" value="@ViewBag.PendingId" />
+    <div class="mb-3">
+        <label class="form-label" for="code">6-digit code</label>
+        <input class="form-control" id="code" name="code" />
+    </div>
+    <button type="submit" class="btn btn-primary">Verify</button>
+</form>

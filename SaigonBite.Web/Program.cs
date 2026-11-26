@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using SaigonBite.Core;
 using SaigonBite.Core.Payments;
 using SaigonBite.Core.Pricing;
 using SaigonBite.Web.Data;
@@ -8,6 +12,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Cookie auth + per-role policies (BR18). Customer = Local OR Tourist.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+    });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Customer", p => p.RequireRole(nameof(Role.Local), nameof(Role.Tourist)));
+    options.AddPolicy(nameof(Role.KitchenStaff), p => p.RequireRole(nameof(Role.KitchenStaff)));
+    options.AddPolicy(nameof(Role.Shipper), p => p.RequireRole(nameof(Role.Shipper)));
+    options.AddPolicy(nameof(Role.Admin), p => p.RequireRole(nameof(Role.Admin)));
+});
 
 // Data layer (EF Core Code First, SQL Server LocalDB). Controllers never build SQL (architecture rule).
 builder.Services.AddDbContext<SaigonBiteDbContext>(options =>
@@ -29,6 +48,11 @@ builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: 
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
 builder.Services.AddScoped<OrderStatusService>();                      // BR14-BR17, A-02/A-12/A-15
 builder.Services.AddScoped<ShipperAssignmentService>();                // A-01/A-04, BR14
+builder.Services.AddSingleton<PasswordHasher<User>>();                  // BR18: random-salt hashing
+builder.Services.AddScoped<RegistrationService>();                     // BR18, A-08
+builder.Services.AddScoped<AccountManagementService>();                // BR18, A-16/A-17
+builder.Services.AddScoped<LoginService>();                            // BR18, A-17/A-22
+builder.Services.AddScoped<DemoDataSeeder>();                          // A-20: CLI-only dev seed
 
 var app = builder.Build();
 
@@ -44,10 +68,20 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// A-20: dev demo data is CLI-only, never a public endpoint.
+if (args.Any(a => string.Equals(a, "--seed-demo", StringComparison.OrdinalIgnoreCase)))
+{
+    using var scope = app.Services.CreateScope();
+    var reset = args.Any(a => string.Equals(a, "--reset-demo", StringComparison.OrdinalIgnoreCase));
+    var added = await scope.ServiceProvider.GetRequiredService<DemoDataSeeder>().SeedAsync(reset);
+    Console.WriteLine($"SaigonBite demo data: {added} orders {(reset ? "(reset) " : string.Empty)}seeded.");
+}
 
 app.Run();

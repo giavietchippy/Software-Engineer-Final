@@ -1,0 +1,37 @@
+@model RegistrationInput
+@{
+    ViewData["Title"] = "Register";
+}
+<h1>Register</h1>
+
+@if (ViewData["Error"] != null)
+{
+    <div class="alert alert-danger">@ViewData["Error"]</div>
+}
+
+<form asp-action="Register" method="post" class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label" for="Role">Customer type</label>
+        <select class="form-select" asp-for="Role">
+            <option value="@Role.Local">Local (mobile)</option>
+            <option value="@Role.Tourist">Tourist (passport)</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Identifier">Mobile or passport</label>
+        <input class="form-control" asp-for="Identifier" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Password">Password (at least 8 characters)</label>
+        <input class="form-control" asp-for="Password" type="password" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Nationality">Nationality (Tourist only)</label>
+        <input class="form-control" asp-for="Nationality" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Email">E-mail (Tourist only)</label>
+        <input class="form-control" asp-for="Email" />
+    </div>
+    <button type="submit" class="btn btn-primary">Send simulated code</button>
+</form>

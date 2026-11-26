@@ -189,6 +189,21 @@ public class ShipperAssignment
     public DateTime? UnassignedAt { get; set; } // null = current assignment (A-01)
 }
 
+// A-08/A-19: staged registration. No User/profile row exists until the simulated code is verified.
+public class PendingRegistration
+{
+    public int Id { get; set; }
+    public string Identifier { get; set; } = string.Empty; // normalised, unique across all users
+    public Role Role { get; set; }                         // Local or Tourist only
+    public string ProfileJson { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty; // random-salt ASP.NET Core hash
+    public string Code { get; set; } = string.Empty;         // exposed in the result for the demo
+    public DateTime ExpiresAt { get; set; }                  // Vietnam local time (UTC+7)
+    public int Attempts { get; set; }
+    public bool IsCancelled { get; set; }                    // 3 failures or expiry
+    public DateTime CreatedAt { get; set; }
+}
+
 // FR-D14 / BR5: Admin-controlled heavy-rain flag, read at placement and stored in the BR17 snapshot.
 public class SystemSetting
 {

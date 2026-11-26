@@ -23,6 +23,7 @@ public class SaigonBiteDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<ShipperAssignment> ShipperAssignments => Set<ShipperAssignment>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<PendingRegistration> PendingRegistrations => Set<PendingRegistration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +42,7 @@ public class SaigonBiteDbContext : DbContext
         modelBuilder.Entity<Payment>().ToTable("Payments");
         modelBuilder.Entity<ShipperAssignment>().ToTable("ShipperAssignments");
         modelBuilder.Entity<SystemSetting>().ToTable("SystemSettings");
+        modelBuilder.Entity<PendingRegistration>().ToTable("PendingRegistrations");
 
         // Global soft-delete filters. IsActive is NOT filtered: deactivated users stay in history (A-09),
         // and inactive vouchers must still be read to produce the A-11 note (BR9).
@@ -156,6 +158,14 @@ public class SaigonBiteDbContext : DbContext
             e.HasIndex(x => x.Key).IsUnique();
             e.HasOne(x => x.UpdatedByUser).WithMany().HasForeignKey(x => x.UpdatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // A-16: non-unique index because cancelled/expired rows stay for the demo; services
+        // reject a second active pending registration for the same normalised identifier.
+        modelBuilder.Entity<PendingRegistration>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Identifier);
         });
 
         Seed(modelBuilder);
