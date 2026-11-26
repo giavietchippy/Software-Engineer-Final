@@ -3,12 +3,14 @@ using System.Text;
 
 namespace SaigonBite.Web.Data;
 
-/// <summary>BR18: passwords are stored hashed, never in plain text.</summary>
-public static class PasswordHasher
+/// <summary>
+/// SEED ONLY. Deterministic salt makes HasData stable across migrations.
+/// Real registration must use ASP.NET Core PasswordHasher&lt;TUser&gt; with a fresh random salt (BR18).
+/// </summary>
+public static class SeedPasswordHasher
 {
     private const int Iterations = 100_000;
 
-    /// <summary>Deterministic so seed rows are stable across migrations.</summary>
     public static string Hash(string password, string salt)
     {
         var saltBytes = Encoding.UTF8.GetBytes(salt);

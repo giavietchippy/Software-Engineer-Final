@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SaigonBite.Core.Payments;
 using SaigonBite.Core.Pricing;
 using SaigonBite.Web.Data;
+using SaigonBite.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,9 @@ builder.Services.AddSingleton<IPaymentStrategy, ApplePayPayment>();    // BR13
 builder.Services.AddSingleton<IPaymentStrategy, PayPalPayment>();      // BR13
 builder.Services.AddSingleton<IPaymentStrategy, CodPayment>();         // BR13, BR14
 builder.Services.AddSingleton<PaymentContext>();                       // BR13: receives all IPaymentStrategy registrations
+builder.Services.AddScoped<SettingsService>();                        // FR-D14, BR5
+builder.Services.AddScoped<OrderReadService>();                       // A-09: detail/history ignore soft-delete filters
+builder.Services.AddScoped<ReportService>();                          // R1, R2
 
 var app = builder.Build();
 

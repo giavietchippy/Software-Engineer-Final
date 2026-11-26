@@ -3,20 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SaigonBite.Web.Data;
 
 #nullable disable
 
-namespace SaigonBite.Web.Data.Migrations
+namespace SaigonBite.Web.Migrations
 {
     [DbContext(typeof(SaigonBiteDbContext))]
-    [Migration("20261125053229_InitialCreate")]
-    partial class InitialCreate
+    partial class SaigonBiteDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,10 +30,6 @@ namespace SaigonBite.Web.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -52,21 +45,18 @@ namespace SaigonBite.Web.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Category = "Vietnamese",
                             IsDeleted = false,
                             Name = "Pho Saigon"
                         },
                         new
                         {
                             Id = 2,
-                            Category = "Coffee",
                             IsDeleted = false,
                             Name = "Ca Phe Rang"
                         },
                         new
                         {
                             Id = 3,
-                            Category = "Dessert",
                             IsDeleted = false,
                             Name = "Che Ngon"
                         });
@@ -100,14 +90,21 @@ namespace SaigonBite.Web.Data.Migrations
                             Id = 1,
                             Capacity = 10,
                             IsDeleted = false,
-                            Name = "District 1 Hub"
+                            Name = "Hub District 1"
                         },
                         new
                         {
                             Id = 2,
-                            Capacity = 8,
+                            Capacity = 10,
                             IsDeleted = false,
-                            Name = "Tan Binh Hub"
+                            Name = "Hub Binh Thanh"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Capacity = 10,
+                            IsDeleted = false,
+                            Name = "Hub Thu Duc"
                         });
                 });
 
@@ -150,6 +147,16 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             HubId = 2,
                             BrandId = 2
+                        },
+                        new
+                        {
+                            HubId = 3,
+                            BrandId = 1
+                        },
+                        new
+                        {
+                            HubId = 3,
+                            BrandId = 3
                         });
                 });
 
@@ -180,7 +187,7 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 1,
                             Mobile = "0912345678",
-                            UserId = 4
+                            UserId = 7
                         });
                 });
 
@@ -194,6 +201,10 @@ namespace SaigonBite.Web.Data.Migrations
 
                     b.Property<int>("BrandId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
@@ -220,6 +231,7 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 1,
                             BrandId = 1,
+                            Category = "Noodles",
                             IsAvailable = true,
                             IsDeleted = false,
                             Name = "Pho Bo",
@@ -229,15 +241,17 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 2,
                             BrandId = 1,
+                            Category = "Rice",
                             IsAvailable = true,
                             IsDeleted = false,
-                            Name = "Bun Cha",
-                            Price = 50000m
+                            Name = "Com Tam",
+                            Price = 60000m
                         },
                         new
                         {
                             Id = 3,
                             BrandId = 2,
+                            Category = "Drinks",
                             IsAvailable = true,
                             IsDeleted = false,
                             Name = "Ca Phe Sua Da",
@@ -247,6 +261,7 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 4,
                             BrandId = 2,
+                            Category = "Drinks",
                             IsAvailable = true,
                             IsDeleted = false,
                             Name = "Ca Phe Den",
@@ -256,6 +271,7 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 5,
                             BrandId = 3,
+                            Category = "Dessert",
                             IsAvailable = true,
                             IsDeleted = false,
                             Name = "Che Ba Mau",
@@ -265,6 +281,7 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 6,
                             BrandId = 3,
+                            Category = "Dessert",
                             IsAvailable = true,
                             IsDeleted = false,
                             Name = "Che Dau Xanh",
@@ -289,6 +306,10 @@ namespace SaigonBite.Web.Data.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<string>("DeliveryAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("DeliveryFee")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -296,6 +317,10 @@ namespace SaigonBite.Web.Data.Migrations
                     b.Property<decimal>("FoodTotal")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("HotelName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("HubId")
                         .HasColumnType("int");
@@ -314,6 +339,10 @@ namespace SaigonBite.Web.Data.Migrations
                     b.Property<decimal>("RawTotal")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RoomNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("RushSurcharge")
                         .HasPrecision(18, 2)
@@ -441,6 +470,9 @@ namespace SaigonBite.Web.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("CashConfirmed")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -456,6 +488,10 @@ namespace SaigonBite.Web.Data.Migrations
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RefundedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("RefundedAt")
                         .HasColumnType("datetime2");
@@ -499,6 +535,48 @@ namespace SaigonBite.Web.Data.Migrations
                     b.ToTable("ShipperAssignments", (string)null);
                 });
 
+            modelBuilder.Entity("SaigonBite.Web.Data.SystemSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UpdatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("SystemSettings", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Key = "HeavyRain",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedByUserId = 1,
+                            Value = "false"
+                        });
+                });
+
             modelBuilder.Entity("SaigonBite.Web.Data.TouristProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -536,7 +614,7 @@ namespace SaigonBite.Web.Data.Migrations
                             Email = "tourist@example.com",
                             Nationality = "USA",
                             Passport = "A1234567",
-                            UserId = 5
+                            UserId = 8
                         });
                 });
 
@@ -591,25 +669,53 @@ namespace SaigonBite.Web.Data.Migrations
                         {
                             Id = 2,
                             HubId = 1,
-                            Identifier = "kitchen1",
+                            Identifier = "kitchen-d1",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen$ovznemfkLJkhva1AfLpEEyHh11erqcakZ7dhMksSY14=",
+                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen-d1$JAZsZSo16HXKKEZAvm1Wd7ils02wS90ZxOOZfkb4YWY=",
                             Role = 2
                         },
                         new
                         {
                             Id = 3,
-                            HubId = 1,
-                            Identifier = "shipper1",
+                            HubId = 2,
+                            Identifier = "kitchen-bt",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-shipper$ry2haqxxnW9A3EhAZlcBSC8BxM3A/rh3aoleh/ao1kk=",
-                            Role = 3
+                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen-bt$aJ5mn/pItyttA3qPIQVjPEPq6d8M3Syf9CH63Hx1M9Q=",
+                            Role = 2
                         },
                         new
                         {
                             Id = 4,
+                            HubId = 3,
+                            Identifier = "kitchen-td",
+                            IsActive = true,
+                            IsDeleted = false,
+                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen-td$rp/4+TVDXKHJ0bSx/3WwCgWRf6X7gDVRQLJo1uLEEaw=",
+                            Role = 2
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Identifier = "shipper1",
+                            IsActive = true,
+                            IsDeleted = false,
+                            PasswordHash = "PBKDF2-SHA256$100000$seed-shipper1$bZkRM65l9vBHh1K/lP5oktpIWRsq0075eV10JCFcbrE=",
+                            Role = 3
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Identifier = "shipper2",
+                            IsActive = true,
+                            IsDeleted = false,
+                            PasswordHash = "PBKDF2-SHA256$100000$seed-shipper2$EhI3lQUOWDi2ak29N5H9rv1YYGTJ4XNareA9lO771cQ=",
+                            Role = 3
+                        },
+                        new
+                        {
+                            Id = 7,
                             Identifier = "0912345678",
                             IsActive = true,
                             IsDeleted = false,
@@ -618,7 +724,7 @@ namespace SaigonBite.Web.Data.Migrations
                         },
                         new
                         {
-                            Id = 5,
+                            Id = 8,
                             Identifier = "A1234567",
                             IsActive = true,
                             IsDeleted = false,
@@ -698,6 +804,31 @@ namespace SaigonBite.Web.Data.Migrations
                             ValidFrom = new DateOnly(2026, 1, 1),
                             ValidTo = new DateOnly(2026, 12, 31),
                             Value = 60000m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "EXPIRED20",
+                            IsActive = true,
+                            IsDeleted = false,
+                            MaxDiscount = 50000m,
+                            MinSubtotal = 50000m,
+                            Type = 0,
+                            ValidFrom = new DateOnly(2025, 1, 1),
+                            ValidTo = new DateOnly(2025, 12, 31),
+                            Value = 20m
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "INACTIVE50",
+                            IsActive = false,
+                            IsDeleted = false,
+                            MinSubtotal = 0m,
+                            Type = 1,
+                            ValidFrom = new DateOnly(2026, 1, 1),
+                            ValidTo = new DateOnly(2026, 12, 31),
+                            Value = 50000m
                         });
                 });
 
@@ -841,6 +972,17 @@ namespace SaigonBite.Web.Data.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Shipper");
+                });
+
+            modelBuilder.Entity("SaigonBite.Web.Data.SystemSetting", b =>
+                {
+                    b.HasOne("SaigonBite.Web.Data.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("SaigonBite.Web.Data.TouristProfile", b =>

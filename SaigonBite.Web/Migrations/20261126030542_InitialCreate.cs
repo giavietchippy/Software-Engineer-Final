@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace SaigonBite.Web.Data.Migrations
+namespace SaigonBite.Web.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -20,7 +20,6 @@ namespace SaigonBite.Web.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -72,6 +71,7 @@ namespace SaigonBite.Web.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BrandId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -164,6 +164,9 @@ namespace SaigonBite.Web.Data.Migrations
                     CustomerId = table.Column<int>(type: "int", nullable: false),
                     HubId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    DeliveryAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HotelName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RoomNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PlacedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SnapshotHubLoad = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
                     SnapshotHeavyRain = table.Column<bool>(type: "bit", nullable: false),
@@ -209,6 +212,28 @@ namespace SaigonBite.Web.Data.Migrations
                         principalTable: "Vouchers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SystemSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Key = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedByUserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SystemSettings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SystemSettings_Users_UpdatedByUserId",
+                        column: x => x.UpdatedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -301,10 +326,12 @@ namespace SaigonBite.Web.Data.Migrations
                     Method = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    CashConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     Reference = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RefundedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    RefundedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RefundedAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -347,12 +374,12 @@ namespace SaigonBite.Web.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "Brands",
-                columns: new[] { "Id", "Category", "IsDeleted", "Name" },
+                columns: new[] { "Id", "IsDeleted", "Name" },
                 values: new object[,]
                 {
-                    { 1, "Vietnamese", false, "Pho Saigon" },
-                    { 2, "Coffee", false, "Ca Phe Rang" },
-                    { 3, "Dessert", false, "Che Ngon" }
+                    { 1, false, "Pho Saigon" },
+                    { 2, false, "Ca Phe Rang" },
+                    { 3, false, "Che Ngon" }
                 });
 
             migrationBuilder.InsertData(
@@ -360,8 +387,9 @@ namespace SaigonBite.Web.Data.Migrations
                 columns: new[] { "Id", "Capacity", "IsDeleted", "Name" },
                 values: new object[,]
                 {
-                    { 1, 10, false, "District 1 Hub" },
-                    { 2, 8, false, "Tan Binh Hub" }
+                    { 1, 10, false, "Hub District 1" },
+                    { 2, 10, false, "Hub Binh Thanh" },
+                    { 3, 10, false, "Hub Thu Duc" }
                 });
 
             migrationBuilder.InsertData(
@@ -370,8 +398,10 @@ namespace SaigonBite.Web.Data.Migrations
                 values: new object[,]
                 {
                     { 1, null, "admin", true, false, "PBKDF2-SHA256$100000$seed-admin$MO1NujUgcgRbOaabCQqIe6cQHYLhmGVITJh5MkyGreQ=", 4 },
-                    { 4, null, "0912345678", true, false, "PBKDF2-SHA256$100000$seed-local$gV43amXn3D4yShVy+XaxlHNXP4dl6Cu3EwpWdU5jO3c=", 0 },
-                    { 5, null, "A1234567", true, false, "PBKDF2-SHA256$100000$seed-tourist$gaAA/ldWzQZj8JoieFTLAyF4wECXFNVlxqvJln/1FN8=", 1 }
+                    { 5, null, "shipper1", true, false, "PBKDF2-SHA256$100000$seed-shipper1$bZkRM65l9vBHh1K/lP5oktpIWRsq0075eV10JCFcbrE=", 3 },
+                    { 6, null, "shipper2", true, false, "PBKDF2-SHA256$100000$seed-shipper2$EhI3lQUOWDi2ak29N5H9rv1YYGTJ4XNareA9lO771cQ=", 3 },
+                    { 7, null, "0912345678", true, false, "PBKDF2-SHA256$100000$seed-local$gV43amXn3D4yShVy+XaxlHNXP4dl6Cu3EwpWdU5jO3c=", 0 },
+                    { 8, null, "A1234567", true, false, "PBKDF2-SHA256$100000$seed-tourist$gaAA/ldWzQZj8JoieFTLAyF4wECXFNVlxqvJln/1FN8=", 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -380,7 +410,9 @@ namespace SaigonBite.Web.Data.Migrations
                 values: new object[,]
                 {
                     { 1, "P10", true, false, 30000m, 100000m, 0, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 10m },
-                    { 2, "F60", true, false, null, 0m, 1, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 60000m }
+                    { 2, "F60", true, false, null, 0m, 1, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 60000m },
+                    { 3, "EXPIRED20", true, false, 50000m, 50000m, 0, new DateOnly(2025, 1, 1), new DateOnly(2025, 12, 31), 20m },
+                    { 4, "INACTIVE50", false, false, null, 0m, 1, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), 50000m }
                 });
 
             migrationBuilder.InsertData(
@@ -392,39 +424,47 @@ namespace SaigonBite.Web.Data.Migrations
                     { 2, 1 },
                     { 3, 1 },
                     { 1, 2 },
-                    { 2, 2 }
+                    { 2, 2 },
+                    { 1, 3 },
+                    { 3, 3 }
                 });
 
             migrationBuilder.InsertData(
                 table: "LocalCustomerProfiles",
                 columns: new[] { "Id", "Mobile", "UserId" },
-                values: new object[] { 1, "0912345678", 4 });
+                values: new object[] { 1, "0912345678", 7 });
 
             migrationBuilder.InsertData(
                 table: "MenuItems",
-                columns: new[] { "Id", "BrandId", "IsAvailable", "IsDeleted", "Name", "Price" },
+                columns: new[] { "Id", "BrandId", "Category", "IsAvailable", "IsDeleted", "Name", "Price" },
                 values: new object[,]
                 {
-                    { 1, 1, true, false, "Pho Bo", 55000m },
-                    { 2, 1, true, false, "Bun Cha", 50000m },
-                    { 3, 2, true, false, "Ca Phe Sua Da", 35000m },
-                    { 4, 2, true, false, "Ca Phe Den", 30000m },
-                    { 5, 3, true, false, "Che Ba Mau", 40000m },
-                    { 6, 3, true, false, "Che Dau Xanh", 45000m }
+                    { 1, 1, "Noodles", true, false, "Pho Bo", 55000m },
+                    { 2, 1, "Rice", true, false, "Com Tam", 60000m },
+                    { 3, 2, "Drinks", true, false, "Ca Phe Sua Da", 35000m },
+                    { 4, 2, "Drinks", true, false, "Ca Phe Den", 30000m },
+                    { 5, 3, "Dessert", true, false, "Che Ba Mau", 40000m },
+                    { 6, 3, "Dessert", true, false, "Che Dau Xanh", 45000m }
                 });
+
+            migrationBuilder.InsertData(
+                table: "SystemSettings",
+                columns: new[] { "Id", "Key", "UpdatedAt", "UpdatedByUserId", "Value" },
+                values: new object[] { 1, "HeavyRain", new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, "false" });
 
             migrationBuilder.InsertData(
                 table: "TouristProfiles",
                 columns: new[] { "Id", "Email", "Nationality", "Passport", "UserId" },
-                values: new object[] { 1, "tourist@example.com", "USA", "A1234567", 5 });
+                values: new object[] { 1, "tourist@example.com", "USA", "A1234567", 8 });
 
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "HubId", "Identifier", "IsActive", "IsDeleted", "PasswordHash", "Role" },
                 values: new object[,]
                 {
-                    { 2, 1, "kitchen1", true, false, "PBKDF2-SHA256$100000$seed-kitchen$ovznemfkLJkhva1AfLpEEyHh11erqcakZ7dhMksSY14=", 2 },
-                    { 3, 1, "shipper1", true, false, "PBKDF2-SHA256$100000$seed-shipper$ry2haqxxnW9A3EhAZlcBSC8BxM3A/rh3aoleh/ao1kk=", 3 }
+                    { 2, 1, "kitchen-d1", true, false, "PBKDF2-SHA256$100000$seed-kitchen-d1$JAZsZSo16HXKKEZAvm1Wd7ils02wS90ZxOOZfkb4YWY=", 2 },
+                    { 3, 2, "kitchen-bt", true, false, "PBKDF2-SHA256$100000$seed-kitchen-bt$aJ5mn/pItyttA3qPIQVjPEPq6d8M3Syf9CH63Hx1M9Q=", 2 },
+                    { 4, 3, "kitchen-td", true, false, "PBKDF2-SHA256$100000$seed-kitchen-td$rp/4+TVDXKHJ0bSx/3WwCgWRf6X7gDVRQLJo1uLEEaw=", 2 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -499,6 +539,17 @@ namespace SaigonBite.Web.Data.Migrations
                 column: "ShipperId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SystemSettings_Key",
+                table: "SystemSettings",
+                column: "Key",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SystemSettings_UpdatedByUserId",
+                table: "SystemSettings",
+                column: "UpdatedByUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TouristProfiles_UserId",
                 table: "TouristProfiles",
                 column: "UserId",
@@ -542,6 +593,9 @@ namespace SaigonBite.Web.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "ShipperAssignments");
+
+            migrationBuilder.DropTable(
+                name: "SystemSettings");
 
             migrationBuilder.DropTable(
                 name: "TouristProfiles");

@@ -22,6 +22,7 @@ public class SaigonBiteDbContext : DbContext
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<ShipperAssignment> ShipperAssignments => Set<ShipperAssignment>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,9 +40,11 @@ public class SaigonBiteDbContext : DbContext
         modelBuilder.Entity<OrderStatusHistory>().ToTable("OrderStatusHistories");
         modelBuilder.Entity<Payment>().ToTable("Payments");
         modelBuilder.Entity<ShipperAssignment>().ToTable("ShipperAssignments");
+        modelBuilder.Entity<SystemSetting>().ToTable("SystemSettings");
 
         // Global soft-delete filters. IsActive is NOT filtered: deactivated users stay in history (A-09),
         // and inactive vouchers must still be read to produce the A-11 note (BR9).
+        // Order detail/history and R1/R2 explicitly call IgnoreQueryFilters() in Services.
         modelBuilder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Hub>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Brand>().HasQueryFilter(x => !x.IsDeleted);
@@ -147,35 +150,46 @@ public class SaigonBiteDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<SystemSetting>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Key).IsUnique();
+            e.HasOne(x => x.UpdatedByUser).WithMany().HasForeignKey(x => x.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         Seed(modelBuilder);
     }
 
-    /// <summary>Small, deterministic demo data. No orders are seeded (Step D creates them).</summary>
+    /// <summary>Small, deterministic dev data. No orders are seeded (Step D creates them).</summary>
     private static void Seed(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Hub>().HasData(
-            new Hub { Id = 1, Name = "District 1 Hub", Capacity = 10 },
-            new Hub { Id = 2, Name = "Tan Binh Hub", Capacity = 8 });
+            new Hub { Id = 1, Name = "Hub District 1", Capacity = 10 },
+            new Hub { Id = 2, Name = "Hub Binh Thanh", Capacity = 10 },
+            new Hub { Id = 3, Name = "Hub Thu Duc", Capacity = 10 });
 
         modelBuilder.Entity<Brand>().HasData(
-            new Brand { Id = 1, Name = "Pho Saigon", Category = "Vietnamese" },
-            new Brand { Id = 2, Name = "Ca Phe Rang", Category = "Coffee" },
-            new Brand { Id = 3, Name = "Che Ngon", Category = "Dessert" });
+            new Brand { Id = 1, Name = "Pho Saigon" },
+            new Brand { Id = 2, Name = "Ca Phe Rang" },
+            new Brand { Id = 3, Name = "Che Ngon" });
 
         modelBuilder.Entity<HubBrand>().HasData(
             new HubBrand { HubId = 1, BrandId = 1 },
             new HubBrand { HubId = 1, BrandId = 2 },
             new HubBrand { HubId = 1, BrandId = 3 },
             new HubBrand { HubId = 2, BrandId = 1 },
-            new HubBrand { HubId = 2, BrandId = 2 });
+            new HubBrand { HubId = 2, BrandId = 2 },
+            new HubBrand { HubId = 3, BrandId = 1 },
+            new HubBrand { HubId = 3, BrandId = 3 });
 
         modelBuilder.Entity<MenuItem>().HasData(
-            new MenuItem { Id = 1, BrandId = 1, Name = "Pho Bo", Price = 55_000m },
-            new MenuItem { Id = 2, BrandId = 1, Name = "Bun Cha", Price = 50_000m },
-            new MenuItem { Id = 3, BrandId = 2, Name = "Ca Phe Sua Da", Price = 35_000m },
-            new MenuItem { Id = 4, BrandId = 2, Name = "Ca Phe Den", Price = 30_000m },
-            new MenuItem { Id = 5, BrandId = 3, Name = "Che Ba Mau", Price = 40_000m },
-            new MenuItem { Id = 6, BrandId = 3, Name = "Che Dau Xanh", Price = 45_000m });
+            new MenuItem { Id = 1, BrandId = 1, Name = "Pho Bo", Category = "Noodles", Price = 55_000m },
+            new MenuItem { Id = 2, BrandId = 1, Name = "Com Tam", Category = "Rice", Price = 60_000m },
+            new MenuItem { Id = 3, BrandId = 2, Name = "Ca Phe Sua Da", Category = "Drinks", Price = 35_000m },
+            new MenuItem { Id = 4, BrandId = 2, Name = "Ca Phe Den", Category = "Drinks", Price = 30_000m },
+            new MenuItem { Id = 5, BrandId = 3, Name = "Che Ba Mau", Category = "Dessert", Price = 40_000m },
+            new MenuItem { Id = 6, BrandId = 3, Name = "Che Dau Xanh", Category = "Dessert", Price = 45_000m });
 
         modelBuilder.Entity<Voucher>().HasData(
             new Voucher
@@ -189,44 +203,80 @@ public class SaigonBiteDbContext : DbContext
                 Id = 2, Code = "F60", Type = VoucherType.Fixed, Value = 60_000m, MaxDiscount = null,
                 MinSubtotal = 0m, ValidFrom = new DateOnly(2026, 1, 1),
                 ValidTo = new DateOnly(2026, 12, 31), IsActive = true
+            },
+            new Voucher
+            {
+                Id = 3, Code = "EXPIRED20", Type = VoucherType.Percent, Value = 20m, MaxDiscount = 50_000m,
+                MinSubtotal = 50_000m, ValidFrom = new DateOnly(2025, 1, 1),
+                ValidTo = new DateOnly(2025, 12, 31), IsActive = true
+            },
+            new Voucher
+            {
+                Id = 4, Code = "INACTIVE50", Type = VoucherType.Fixed, Value = 50_000m, MaxDiscount = null,
+                MinSubtotal = 0m, ValidFrom = new DateOnly(2026, 1, 1),
+                ValidTo = new DateOnly(2026, 12, 31), IsActive = false
             });
 
-        // BR18: seed passwords are >= 8 chars and stored only as PBKDF2 hashes.
+        // BR18: seed passwords are >= 8 chars and stored only as deterministic PBKDF2 hashes.
+        // Registration later MUST use ASP.NET Core PasswordHasher<TUser> with a random salt.
         modelBuilder.Entity<User>().HasData(
             new User
             {
                 Id = 1, Role = Role.Admin, Identifier = "admin",
-                PasswordHash = PasswordHasher.Hash("Admin@123", "seed-admin"), IsActive = true
+                PasswordHash = SeedPasswordHasher.Hash("Admin@123", "seed-admin"), IsActive = true
             },
             new User
             {
-                Id = 2, Role = Role.KitchenStaff, Identifier = "kitchen1",
-                PasswordHash = PasswordHasher.Hash("Kitchen@123", "seed-kitchen"), IsActive = true, HubId = 1
+                Id = 2, Role = Role.KitchenStaff, Identifier = "kitchen-d1",
+                PasswordHash = SeedPasswordHasher.Hash("KitchenD1@123", "seed-kitchen-d1"), IsActive = true, HubId = 1
             },
             new User
             {
-                Id = 3, Role = Role.Shipper, Identifier = "shipper1",
-                PasswordHash = PasswordHasher.Hash("Shipper@123", "seed-shipper"), IsActive = true, HubId = 1
+                Id = 3, Role = Role.KitchenStaff, Identifier = "kitchen-bt",
+                PasswordHash = SeedPasswordHasher.Hash("KitchenBT@123", "seed-kitchen-bt"), IsActive = true, HubId = 2
             },
             new User
             {
-                Id = 4, Role = Role.Local, Identifier = "0912345678",
-                PasswordHash = PasswordHasher.Hash("Local@123", "seed-local"), IsActive = true
+                Id = 4, Role = Role.KitchenStaff, Identifier = "kitchen-td",
+                PasswordHash = SeedPasswordHasher.Hash("KitchenTD@123", "seed-kitchen-td"), IsActive = true, HubId = 3
             },
             new User
             {
-                Id = 5, Role = Role.Tourist, Identifier = "A1234567",
-                PasswordHash = PasswordHasher.Hash("Tourist@123", "seed-tourist"), IsActive = true
+                Id = 5, Role = Role.Shipper, Identifier = "shipper1",
+                PasswordHash = SeedPasswordHasher.Hash("Shipper1@123", "seed-shipper1"), IsActive = true
+            },
+            new User
+            {
+                Id = 6, Role = Role.Shipper, Identifier = "shipper2",
+                PasswordHash = SeedPasswordHasher.Hash("Shipper2@123", "seed-shipper2"), IsActive = true
+            },
+            new User
+            {
+                Id = 7, Role = Role.Local, Identifier = "0912345678",
+                PasswordHash = SeedPasswordHasher.Hash("Local@123", "seed-local"), IsActive = true
+            },
+            new User
+            {
+                Id = 8, Role = Role.Tourist, Identifier = "A1234567",
+                PasswordHash = SeedPasswordHasher.Hash("Tourist@123", "seed-tourist"), IsActive = true
             });
 
         modelBuilder.Entity<LocalCustomerProfile>().HasData(
-            new LocalCustomerProfile { Id = 1, UserId = 4, Mobile = "0912345678" });
+            new LocalCustomerProfile { Id = 1, UserId = 7, Mobile = "0912345678" });
 
         modelBuilder.Entity<TouristProfile>().HasData(
             new TouristProfile
             {
-                Id = 1, UserId = 5, Passport = "A1234567",
+                Id = 1, UserId = 8, Passport = "A1234567",
                 Nationality = "USA", Email = "tourist@example.com"
+            });
+
+        // FR-D14 / BR5: default heavy-rain flag is false; Admin changes it through SettingsService.
+        modelBuilder.Entity<SystemSetting>().HasData(
+            new SystemSetting
+            {
+                Id = 1, Key = "HeavyRain", Value = "false",
+                UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0), UpdatedByUserId = 1
             });
     }
 }

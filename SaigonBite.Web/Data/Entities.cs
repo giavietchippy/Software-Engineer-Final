@@ -52,7 +52,6 @@ public class Brand
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty; // R1: revenue by brand category
     public bool IsDeleted { get; set; }
 
     public ICollection<HubBrand> HubBrands { get; set; } = new List<HubBrand>();
@@ -73,6 +72,7 @@ public class MenuItem
     public int BrandId { get; set; }
     public Brand Brand { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty; // R1: Noodles, Rice, Drinks, Dessert
     public decimal Price { get; set; } // VND
     public bool IsAvailable { get; set; } = true; // BR12
     public bool IsDeleted { get; set; }
@@ -101,6 +101,11 @@ public class Order
     public int HubId { get; set; }
     public Hub Hub { get; set; } = null!;
     public OrderStatus Status { get; set; } = OrderStatus.Placed; // changed only via OrderStateMachine (BR15)
+
+    // Delivery destination for the shipper.
+    public string DeliveryAddress { get; set; } = string.Empty;
+    public string HotelName { get; set; } = string.Empty; // empty for local customers
+    public string RoomNumber { get; set; } = string.Empty; // empty for local customers
 
     // BR17 snapshot: everything pricing depends on is frozen at placement.
     public DateTime PlacedAt { get; set; } // Vietnam local time (UTC+7)
@@ -165,10 +170,12 @@ public class Payment
     public PaymentMethod Method { get; set; } // BR13
     public decimal Amount { get; set; } // rounded order total (A-13)
     public PaymentStatus Status { get; set; }
+    public bool CashConfirmed { get; set; } // BR14: mirrors Order.CashConfirmed for COD
     public string Reference { get; set; } = string.Empty;
     public string? Message { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? RefundedAt { get; set; } // BR16 full refund simulation
+    public decimal RefundedAmount { get; set; } // A-02: online keeps delivery fee; COD refunds 0
 }
 
 public class ShipperAssignment
@@ -180,4 +187,15 @@ public class ShipperAssignment
     public User Shipper { get; set; } = null!;
     public DateTime AssignedAt { get; set; }
     public DateTime? UnassignedAt { get; set; } // null = current assignment (A-01)
+}
+
+// FR-D14 / BR5: Admin-controlled heavy-rain flag, read at placement and stored in the BR17 snapshot.
+public class SystemSetting
+{
+    public int Id { get; set; }
+    public string Key { get; set; } = string.Empty; // unique, e.g. "HeavyRain"
+    public string Value { get; set; } = string.Empty; // "true" / "false"
+    public DateTime UpdatedAt { get; set; } // Vietnam local time (UTC+7)
+    public int UpdatedByUserId { get; set; }
+    public User UpdatedByUser { get; set; } = null!;
 }

@@ -33,3 +33,45 @@ builder.Services.AddSingleton<IPaymentStrategy, CodPayment>();
 builder.Services.AddSingleton<PaymentContext>();   // receives all IPaymentStrategy registrations
 ```
 A new payment method = one new class + one new registration line (Change Request evidence).
+
+## Step C database (SQL Server LocalDB)
+
+Connection string in `SaigonBite.Web/appsettings.json`: server `(localdb)\MSSQLLocalDB`, database `SaigonBite`.
+Migrations live in `SaigonBite.Web/Migrations`. Apply them with:
+
+```
+$env:DOTNET_ROLL_FORWARD = 'Major'   # this machine only has the .NET 10 runtime
+dotnet ef database update --project SaigonBite.Web --startup-project SaigonBite.Web
+```
+
+### Dev seed logins (development only)
+
+| Identifier | Role | Hub | Password |
+|---|---|---|---|
+| `admin` | Admin | – | `Admin@123` |
+| `kitchen-d1` | KitchenStaff | Hub District 1 | `KitchenD1@123` |
+| `kitchen-bt` | KitchenStaff | Hub Binh Thanh | `KitchenBT@123` |
+| `kitchen-td` | KitchenStaff | Hub Thu Duc | `KitchenTD@123` |
+| `shipper1` | Shipper | none (shared pool) | `Shipper1@123` |
+| `shipper2` | Shipper | none (shared pool) | `Shipper2@123` |
+| `0912345678` | Local | – | `Local@123` |
+| `A1234567` | Tourist | – | `Tourist@123` |
+
+Seed passwords are at least 8 characters (BR18) and stored only as deterministic PBKDF2 hashes so
+`HasData` stays stable across migrations. `SeedPasswordHasher` is **seed-only**; real registration must
+use ASP.NET Core `PasswordHasher<TUser>` with a fresh random salt.
+
+Other seed data: 3 hubs (capacity 10 each), one kitchen staff per hub, two shippers with no hub,
+vouchers `P10` and `F60` (valid), `EXPIRED20` (expired), `INACTIVE50` (inactive), and 6 menu items
+with `Category` on `MenuItem` (`Noodles`, `Rice`, `Drinks`, `Dessert`) for R1.
+`SystemSettings` contains `HeavyRain = false`, editable only by an active Admin (`SettingsService`, FR-D14/BR5).
+
+## Tests
+
+```
+dotnet test SaigonBite.sln
+```
+
+`SaigonBite.Tests` holds the 85 unchanged Core rule tests (`T-xx`/`S-xx`).
+`SaigonBite.Web.Tests` holds the Data-layer test that proves soft-deleting a user/menu item does not
+change order detail, status history or R1 revenue (A-09). It uses a throwaway LocalDB database.
