@@ -27,6 +27,8 @@ builder.Services.AddScoped<ReportService>();                          // R1, R2
 builder.Services.AddSingleton<IClock, SystemClock>();                  // A-12: no clock reads inside services
 builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: deterministic demo distances
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
+builder.Services.AddScoped<OrderStatusService>();                      // BR14-BR17, A-02/A-12/A-15
+builder.Services.AddScoped<ShipperAssignmentService>();                // A-01/A-04, BR14
 
 var app = builder.Build();
 

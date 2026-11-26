@@ -88,3 +88,20 @@ Distances come from the replaceable `DistanceService` (A-06): hub 1 + `District 
 `District 7` is 10.5 km (out of coverage). Time comes from `IClock`; `SystemClock` is used in production
 and a fake in tests. `OrderStatusHistories.FromStatus` is nullable since Step D for the initial row
 (migration `20261126031657_MakeHistoryFromStatusNullable`).
+
+## Steps E+F service layer (no controllers or views yet)
+
+`OrderStatusService.ChangeStatusAsync` loads the actor's role/hub, payment method and COD cash flag from
+the database, calls `OrderStateMachine.Ensure`, then writes the new status and one history row in a single
+transaction; rejected transitions write nothing. `EditItemsAsync` recomputes from the stored BR17 snapshot
+(`SnapshotHubLoad`, `SnapshotHeavyRain`, `SnapshotDistanceKm`, `PlacedAt`) while the order is `Placed`,
+revalidates BR1/BR12, replaces the lines and updates the price parts. `CancelAsync` gives a full simulated
+refund for online-paid orders; `FailDeliveryAsync` refunds only `FoodTotal` (A-02); COD orders never refund.
+
+`ShipperAssignmentService` is Admin-only: initial assignment on `Ready`, reassign/unassign until
+`OutForDelivery`, at most 2 `OutForDelivery` orders per shipper (A-04), old rows kept with `UnassignedAt`,
+and shipper-scoped order listing. `ConfirmCashAsync` lets only the assigned shipper mark a COD order's
+payment `Paid`/`CashConfirmed`, which is what allows `Delivered` (BR14).
+
+**A-15 (assumption):** when an online-paid order is edited, its `Payment.Amount` is set to the new total
+to keep the stored figures consistent, but no second gateway charge or partial refund is simulated.
