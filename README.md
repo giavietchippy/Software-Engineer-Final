@@ -171,6 +171,26 @@ It creates 12 orders covering all eight states, both customer groups, all five p
 shippers (N-01). Rows are tagged with a `DEMO-` address prefix so reset deletes only demo rows; without
 `--reset-demo` a second call is a no-op. Fixture rows are written directly to show every state (N-05).
 
+## Fixed demo clock (development only)
+
+By default the app uses the real clock (`SystemClock`). To repeat the spec example at 15:00 Vietnam
+time, set `SAIGONBITE_FIXED_CLOCK` to an ISO-8601 instant with an explicit offset:
+
+```
+$env:SAIGONBITE_FIXED_CLOCK = '2026-11-26T15:00:00+07:00'
+dotnet run --project SaigonBite.Web
+```
+
+Clear the variable to return to real time:
+
+```
+Remove-Item Env:SAIGONBITE_FIXED_CLOCK
+```
+
+The variable is ignored when `ASPNETCORE_ENVIRONMENT=Production`, and an invalid or empty value also
+falls back to `SystemClock`. The old `DemoClock:LocalTime` setting is no longer read. New tests assert
+that the default resolution is `SystemClock`; no Core class is involved.
+
 ## Real HTTP smoke check
 
 `HttpSmokeTests` drives the MVC pipeline with `WebApplicationFactory` (real antiforgery token and

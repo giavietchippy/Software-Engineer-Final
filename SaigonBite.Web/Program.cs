@@ -71,9 +71,11 @@ builder.Services.AddSingleton<PaymentContext>();                       // BR13: 
 builder.Services.AddScoped<SettingsService>();                        // FR-D14, BR5
 builder.Services.AddScoped<OrderReadService>();                       // A-09: detail/history ignore soft-delete filters
 builder.Services.AddScoped<ReportService>();                          // R1, R2
-// N-06: real clock by default; DemoClock:LocalTime (e.g. "15:00") is a dev-only injection point.
-if (TimeOnly.TryParse(builder.Configuration["DemoClock:LocalTime"], out var demoTime))
-    builder.Services.AddSingleton<IClock>(new DemoClock(demoTime));
+// N-06: real clock by default. SAIGONBITE_FIXED_CLOCK is opt-in, must be a valid ISO-8601
+// instant (e.g. 2026-11-26T15:00:00+07:00), and is deliberately ignored in Production.
+var fixedClockSetting = Environment.GetEnvironmentVariable(DemoClock.EnvironmentVariableName);
+if (!builder.Environment.IsProduction() && DemoClock.TryCreate(fixedClockSetting, out var fixedClock))
+    builder.Services.AddSingleton<IClock>(fixedClock!);
 else
     builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: deterministic demo distances
