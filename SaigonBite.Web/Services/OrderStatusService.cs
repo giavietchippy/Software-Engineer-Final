@@ -36,6 +36,14 @@ public sealed class OrderStatusService
     public Task<OperationResult> CancelAsync(int orderId, int actorUserId, string? reason = null) =>
         TransitionAsync(orderId, OrderStatus.Cancelled, actorUserId, reason, RefundMode.FullIfOnline);
 
+    /// <summary>
+    /// FR-C4: advisory UI flags only. BR17/BR16 are still enforced by EditItemsAsync and
+    /// OrderStateMachine, so a forged POST cannot bypass them.
+    /// </summary>
+    public CustomerOrderActions CustomerActions(OrderStatus status) =>
+        new(status == OrderStatus.Placed,
+            status is OrderStatus.Placed or OrderStatus.Confirmed);
+
     /// <summary>A-02: failed delivery refunds FoodTotal only; delivery fee, surcharges and rounding are kept.</summary>
     public Task<OperationResult> FailDeliveryAsync(int orderId, int shipperUserId, string reason) =>
         TransitionAsync(orderId, OrderStatus.Failed, shipperUserId, reason, RefundMode.FoodOnlyIfOnline);
@@ -243,3 +251,7 @@ public sealed class OrderStatusService
         }
     }
 }
+
+/// <summary>FR-C4: what the UI may offer; never used as an authorization decision.</summary>
+public sealed record CustomerOrderActions(bool CanEdit, bool CanCancel);
+

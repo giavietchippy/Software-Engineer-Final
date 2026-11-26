@@ -1,0 +1,224 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = L["CheckoutTitle"];
+}
+
+@functions {
+    private string Money(decimal value) => value.ToString("N0");
+
+    private string PaymentText(PaymentMethod method) => L["Payment" + method].Value;
+
+    private string DistrictText(DistrictOption option) => L[option.LabelKey].Value;
+
+    private string ErrorText()
+    {
+        if (Model.RejectReason is { } reason)
+        {
+            return reason switch
+            {
+                RejectReason.BelowMinimum => L["ErrorBelowMinimum"].Value,
+                RejectReason.OutOfCoverage => L["ErrorOutOfCoverage"].Value,
+                RejectReason.HubBusy => L["ErrorHubBusy"].Value,
+                _ => Model.Error ?? L["ErrorGeneric"].Value
+            };
+        }
+
+        return Model.Error ?? L["ErrorGeneric"].Value;
+    }
+}
+
+<div class="row g-3">
+    <div class="col-12">
+        <h1 class="h3 mb-1">@L["CheckoutTitle"]</h1>
+        <p class="text-muted mb-0">@L["CheckoutHub"]: <strong>@Model.HubId</strong></p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">@ErrorText()</div>
+        </div>
+    }
+    @if (Model.LineErrors.Count > 0)
+    {
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                <div>@L["ErrorLineRules"]</div>
+                <ul class="mb-0">
+                    @foreach (var lineError in Model.LineErrors)
+                    {
+                        <li>@lineError</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+    @if (!Model.HasPaymentMethods)
+    {
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">@L["ErrorPayment"]</div>
+        </div>
+    }
+
+    <form asp-action="Place" method="post" id="checkout-form" class="row g-3">
+        <input type="hidden" name="HubId" value="@Model.HubId" />
+        <input type="hidden" name="IsTourist" value="@Model.IsTourist" />
+
+        <div class="col-12 col-lg-7">
+            <div class="card mb-3">
+                <div class="card-header h6 mb-0">@L["CartSummary"]</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">@L["Item"]</th>
+                                <th scope="col">@L["Category"]</th>
+                                <th scope="col" class="text-end">@L["UnitPrice"]</th>
+                                <th scope="col" class="text-center">@L["Qty"]</th>
+                                <th scope="col" class="text-end">@L["LineTotal"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Lines.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-muted">@L["NoPreview"]</td>
+                                </tr>
+                            }
+                            @for (var i = 0; i < Model.Lines.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        @Model.Lines[i].Name
+                                        <input type="hidden" name="Lines[@i].MenuItemId" value="@Model.Lines[i].MenuItemId" />
+                                        <input type="hidden" name="Lines[@i].Name" value="@Model.Lines[i].Name" />
+                                        <input type="hidden" name="Lines[@i].Category" value="@Model.Lines[i].Category" />
+                                        <input type="hidden" name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" />
+                                    </td>
+                                    <td>@L["Category" + Model.Lines[i].Category]</td>
+                                    <td class="text-end">@Money(Model.Lines[i].UnitPrice)</td>
+                                    <td class="text-center">
+                                        <input class="form-control form-control-sm mx-auto" style="max-width:5rem"
+                                               type="number" min="1" max="20" step="1"
+                                               name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity" />
+                                    </td>
+                                    <td class="text-end">@Money(Model.Lines[i].UnitPrice * Model.Lines[i].Quantity)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header h6 mb-0">@L["DeliveryAddress"]</div>
+                <div class="card-body row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="DeliveryAddress">@L["DeliveryAddress"]</label>
+                        <input class="form-control" id="DeliveryAddress" name="DeliveryAddress"
+                               value="@Model.DeliveryAddress" required />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="District">@L["District"]</label>
+                        <select class="form-select" id="District" name="District">
+                            @foreach (var district in Model.Districts)
+                            {
+                                <option value="@district.Value" selected="@(district.Value == Model.District ? "selected" : null)">
+                                    @DistrictText(district)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    @if (Model.IsTourist)
+                    {
+                        <div class="col-12"><h2 class="h6">@L["TouristInfo"]</h2></div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="HotelName">@L["HotelName"]</label>
+                            <input class="form-control" id="HotelName" name="HotelName" value="@Model.HotelName" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="RoomNumber">@L["RoomNumber"]</label>
+                            <input class="form-control" id="RoomNumber" name="RoomNumber" value="@Model.RoomNumber" />
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" name="HotelName" value="@Model.HotelName" />
+                        <input type="hidden" name="RoomNumber" value="@Model.RoomNumber" />
+                    }
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header h6 mb-0">@L["VoucherCode"]</div>
+                <div class="card-body row g-2">
+                    <div class="col-12 col-md-8">
+                        <label class="form-label visually-hidden" for="VoucherCode">@L["VoucherCode"]</label>
+                        <input class="form-control" id="VoucherCode" name="VoucherCode" value="@Model.VoucherCode" />
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" formaction="@Url.Action("Preview")" class="btn btn-outline-primary w-100">
+                            @L["ApplyVoucher"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="card mb-3">
+                <div class="card-header h6 mb-0">@L["PriceBreakdown"]</div>
+                <div class="card-body">
+                    @if (Model.Breakdown is { } price)
+                    {
+                        <dl class="row mb-0">
+                            <dt class="col-7">@L["Subtotal"]</dt><dd class="col-5 text-end">@Money(price.Subtotal)</dd>
+                            <dt class="col-7">@L["QuietDiscount"]</dt><dd class="col-5 text-end">-@Money(price.QuietDiscount)</dd>
+                            <dt class="col-7">@L["VoucherDiscount"]</dt><dd class="col-5 text-end">-@Money(price.VoucherDiscount)</dd>
+                            <dt class="col-7">@L["DeliveryFee"]</dt><dd class="col-5 text-end">@Money(price.DeliveryFee)</dd>
+                            <dt class="col-7">@L["RushSurcharge"]</dt><dd class="col-5 text-end">@Money(price.RushSurcharge)</dd>
+                            <dt class="col-7">@L["RainSurcharge"]</dt><dd class="col-5 text-end">@Money(price.RainSurcharge)</dd>
+                            <dt class="col-7 fs-5 fw-bold">@L["Total"]</dt><dd class="col-5 text-end fs-5 fw-bold">@Money(price.Total)</dd>
+                        </dl>
+                        @if (!string.IsNullOrWhiteSpace(price.VoucherNote))
+                        {
+                            <div class="alert alert-warning small mt-3 mb-0" role="alert">
+                                @L["VoucherNote"]: @price.VoucherNote
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0" role="alert">@L["NoPreview"]</div>
+                    }
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header h6 mb-0">@L["PaymentMethod"]</div>
+                <div class="card-body">
+                    <p class="text-muted small">@L["SelectPayment"]</p>
+                    @foreach (var method in Model.PaymentMethods)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="PaymentMethod"
+                                   id="pay-@method" value="@method"
+                                   checked="@(method == Model.PaymentMethod ? "checked" : null)" />
+                            <label class="form-check-label" for="pay-@method">@PaymentText(method)</label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" formaction="@Url.Action("Place")" class="btn btn-success btn-lg"
+                        disabled="@(Model.HasPaymentMethods ? null : "disabled")">
+                    @L["PlaceOrder"]
+                </button>
+                <a asp-controller="Order" asp-action="Menu" asp-route-hubId="@Model.HubId" class="btn btn-outline-secondary">
+                    @L["CheckoutBack"]
+                </a>
+            </div>
+        </div>
+    </form>
+</div>

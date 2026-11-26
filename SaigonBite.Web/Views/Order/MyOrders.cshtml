@@ -1,0 +1,53 @@
+@model MyOrdersViewModel
+@{
+    ViewData["Title"] = L["MyOrdersTitle"];
+}
+
+@functions {
+    private string StatusText(OrderStatus status) => L["Status" + status].Value;
+}
+
+<div class="row g-3">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h1 class="h3 mb-0">@L["MyOrdersTitle"]</h1>
+        <a asp-action="Hubs" class="btn btn-primary">@L["NavOrder"]</a>
+    </div>
+
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>@L["OrderNumber"]</th>
+                        <th>@L["PlacedAt"]</th>
+                        <th>@L["Status"]</th>
+                        <th class="text-end">@L["OrderTotal"]</th>
+                        <th class="text-center">@L["Lines"]</th>
+                        <th>@L["Address"]</th>
+                        <th class="text-end">@L["View"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Orders.Count == 0)
+                    {
+                        <tr><td colspan="7" class="text-muted">@L["NoOrders"]</td></tr>
+                    }
+                    @foreach (var order in Model.Orders)
+                    {
+                        <tr>
+                            <td>@order.Id</td>
+                            <td>@order.PlacedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><span class="badge bg-info text-dark">@StatusText(order.Status)</span></td>
+                            <td class="text-end">@order.Total.ToString("N0")</td>
+                            <td class="text-center">@order.LineCount</td>
+                            <td>@order.DeliveryAddress</td>
+                            <td class="text-end">
+                                <a asp-action="Track" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">@L["View"]</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

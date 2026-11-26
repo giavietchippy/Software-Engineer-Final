@@ -1,5 +1,8 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +16,23 @@ using SaigonBite.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container. N-04: AutoValidateAntiforgeryToken covers EVERY POST action,
-// including future rain-flag/cancel/status/assignment/cash-confirmation actions.
+// including language toggle, cart, preview, place, edit and cancel actions.
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+
+// NFR3: shared EN/VI .resx files, selected by a cookie-only request-culture provider.
+// The SDK embeds Resources/SharedResource*.resx under the marker type's full name,
+// so no ResourcesPath is set here (setting it duplicates the namespace segment).
+builder.Services.AddLocalization();
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var cultures = new[] { new CultureInfo("en"), new CultureInfo("vi") };
+    options.DefaultRequestCulture = new RequestCulture("en");
+    options.SupportedCultures = cultures;
+    options.SupportedUICultures = cultures;
+    options.RequestCultureProviders.Clear();
+    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+});
 
 // N-04: hardened cookie auth + per-role policies (BR18). Customer = Local OR Tourist.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -54,8 +71,14 @@ builder.Services.AddSingleton<PaymentContext>();                       // BR13: 
 builder.Services.AddScoped<SettingsService>();                        // FR-D14, BR5
 builder.Services.AddScoped<OrderReadService>();                       // A-09: detail/history ignore soft-delete filters
 builder.Services.AddScoped<ReportService>();                          // R1, R2
-builder.Services.AddSingleton<IClock, SystemClock>();                  // N-06: no clock reads inside services
+// N-06: real clock by default; DemoClock:LocalTime (e.g. "15:00") is a dev-only injection point.
+if (TimeOnly.TryParse(builder.Configuration["DemoClock:LocalTime"], out var demoTime))
+    builder.Services.AddSingleton<IClock>(new DemoClock(demoTime));
+else
+    builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: deterministic demo distances
+builder.Services.AddSingleton<IDistrictCatalog, DistrictCatalog>();    // FR-C3 dropdown source
+builder.Services.AddScoped<CustomerCatalogService>();                 // FR-C1/C2 catalog reads
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
 builder.Services.AddScoped<OrderStatusService>();                      // BR14-BR17, A-02/A-12/A-15
 builder.Services.AddScoped<ShipperAssignmentService>();                // A-01/A-04, BR14
@@ -84,6 +107,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 app.UseRouting();
 
 app.UseAuthentication();

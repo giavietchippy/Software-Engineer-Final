@@ -1,8 +1,16 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = L["HomeTitle"];
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center py-5">
+    <h1 class="display-4">@L["HomeTitle"]</h1>
+    <p class="lead">@L["HomeIntro"]</p>
+    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Local") || User.IsInRole("Tourist")))
+    {
+        <a asp-controller="Order" asp-action="Hubs" class="btn btn-lg btn-danger">@L["NavOrder"]</a>
+    }
+    else
+    {
+        <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-danger">@L["NavLogin"]</a>
+    }
 </div>

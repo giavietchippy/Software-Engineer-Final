@@ -21,12 +21,23 @@ public sealed class OrderReadService
             .SingleAsync(o => o.Id == orderId);
 
         return new OrderDetailDto(
-            order.Id, order.Status, order.Total, order.PlacedAt,
+            order.Id, order.CustomerId, order.HubId, order.Status, order.Total, order.PlacedAt,
             order.DeliveryAddress, order.HotelName, order.RoomNumber,
             order.SnapshotDistanceKm, order.SnapshotHubLoad, order.SnapshotHeavyRain,
             order.VoucherId, order.VoucherNote,
             order.Lines.Select(l => new OrderLineDto(
-                l.MenuItem.Name, l.MenuItem.Category, l.Quantity, l.UnitPrice)).ToList());
+                l.MenuItemId, l.MenuItem.Name, l.MenuItem.Category, l.Quantity, l.UnitPrice)).ToList());
+    }
+
+    /// <summary>FR-C5: only the signed-in customer's orders, newest first.</summary>
+    public async Task<IReadOnlyList<OrderListItemDto>> GetCustomerOrdersAsync(int customerId)
+    {
+        return await _db.Orders.IgnoreQueryFilters().AsNoTracking()
+            .Where(o => o.CustomerId == customerId)
+            .OrderByDescending(o => o.PlacedAt)
+            .Select(o => new OrderListItemDto(
+                o.Id, o.Status, o.PlacedAt, o.Total, o.Lines.Count, o.DeliveryAddress, o.Hub.Name))
+            .ToListAsync();
     }
 
     public async Task<IReadOnlyList<OrderHistoryDto>> GetHistoryAsync(int orderId)
@@ -46,6 +57,8 @@ public sealed class OrderReadService
 
 public sealed record OrderDetailDto(
     int Id,
+    int CustomerId,
+    int HubId,
     OrderStatus Status,
     decimal Total,
     DateTime PlacedAt,
@@ -59,7 +72,12 @@ public sealed record OrderDetailDto(
     string? VoucherNote,
     IReadOnlyList<OrderLineDto> Lines);
 
-public sealed record OrderLineDto(string ItemName, string Category, int Quantity, decimal UnitPrice);
+public sealed record OrderLineDto(
+    int MenuItemId, string ItemName, string Category, int Quantity, decimal UnitPrice);
+
+public sealed record OrderListItemDto(
+    int Id, OrderStatus Status, DateTime PlacedAt, decimal Total, int LineCount,
+    string DeliveryAddress, string HubName);
 
 public sealed record OrderHistoryDto(
     OrderStatus? FromStatus,

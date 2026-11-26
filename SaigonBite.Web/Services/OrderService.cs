@@ -65,9 +65,21 @@ public sealed class OrderService
     private readonly SettingsService _settings;
     private readonly IClock _clock;
     private readonly IDistanceService _distance;
+    private readonly OrderReadService _read;
+    private readonly CustomerCatalogService _catalog;
+    private readonly IDistrictCatalog _districts;
 
+    // Existing six-argument constructor is preserved for the unit tests.
     public OrderService(SaigonBiteDbContext db, PricingService pricing, PaymentContext payments,
         SettingsService settings, IClock clock, IDistanceService distance)
+        : this(db, pricing, payments, settings, clock, distance,
+            new OrderReadService(db), new CustomerCatalogService(db), new DistrictCatalog())
+    {
+    }
+
+    public OrderService(SaigonBiteDbContext db, PricingService pricing, PaymentContext payments,
+        SettingsService settings, IClock clock, IDistanceService distance,
+        OrderReadService read, CustomerCatalogService catalog, IDistrictCatalog districts)
     {
         _db = db;
         _pricing = pricing;
@@ -75,7 +87,30 @@ public sealed class OrderService
         _settings = settings;
         _clock = clock;
         _distance = distance;
+        _read = read;
+        _catalog = catalog;
+        _districts = districts;
     }
+
+    /// <summary>FR-C1/C2/C3/C5: read-only UI data is exposed here so controllers only call this service.</summary>
+    public IReadOnlyList<DistrictOption> Districts => _districts.Districts;
+
+    public Task<IReadOnlyList<HubCard>> GetHubCardsAsync() => _catalog.GetHubCardsAsync();
+
+    public Task<IReadOnlyList<MenuBrand>> GetMenuAsync(int hubId) => _catalog.GetMenuAsync(hubId);
+
+    public Task<Dictionary<int, MenuItemView>> GetItemsAsync(IEnumerable<int> ids) => _catalog.GetItemsAsync(ids);
+
+    public Task<OrderDetailDto> GetDetailAsync(int orderId) => _read.GetDetailAsync(orderId);
+
+    public Task<IReadOnlyList<OrderHistoryDto>> GetHistoryAsync(int orderId) => _read.GetHistoryAsync(orderId);
+
+    public Task<IReadOnlyList<OrderListItemDto>> GetCustomerOrdersAsync(int customerId) =>
+        _read.GetCustomerOrdersAsync(customerId);
+
+    /// <summary>BR13: checkout options come from the single Core payment registry (no UI rules).</summary>
+    public IReadOnlyList<PaymentMethod> AllowedPaymentMethods(Role payer, decimal total) =>
+        _payments.AllowedMethods(payer, total);
 
     /// <summary>Prices a basket without writing anything.</summary>
     public async Task<PreviewResult> PreviewPriceAsync(PlaceOrderInput input)
