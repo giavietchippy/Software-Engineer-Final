@@ -1,0 +1,74 @@
+@model IReadOnlyList<AccountDto>
+@{
+    ViewData["Title"] = "Accounts";
+}
+<h1>Accounts</h1>
+
+@if (TempData["Notice"] != null)
+{
+    <div class="alert alert-info">@TempData["Notice"]</div>
+}
+
+<form asp-action="Accounts" method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input class="form-control" name="search" placeholder="Search identifier" />
+    </div>
+    <div class="col"><button class="btn btn-secondary" type="submit">Search</button></div>
+</form>
+
+<table class="table table-sm">
+    <thead><tr><th>Id</th><th>Role</th><th>Identifier</th><th>Hub</th><th>Active</th><th>Action</th></tr></thead>
+    <tbody>
+        @foreach (var account in Model)
+        {
+            <tr>
+                <td>@account.Id</td>
+                <td>@account.Role</td>
+                <td>@account.Identifier</td>
+                <td>@(account.HubId?.ToString() ?? "–")</td>
+                <td>@(!account.IsDeleted && account.IsActive)</td>
+                <td>
+                    @if (!account.IsDeleted && account.IsActive)
+                    {
+                        <form asp-action="Deactivate" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@account.Id" />
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Deactivate</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Reactivate" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@account.Id" />
+                            <button class="btn btn-sm btn-outline-success" type="submit">Reactivate</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Create staff account</h2>
+<form asp-action="CreateStaff" method="post" class="row g-2 col-md-8">
+    <div class="col-md-3">
+        <label class="form-label" for="Role">Role</label>
+        <select class="form-select" id="Role" name="Role">
+            <option value="@Role.KitchenStaff">KitchenStaff</option>
+            <option value="@Role.Shipper">Shipper</option>
+            <option value="@Role.Admin">Admin</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="Identifier">Identifier</label>
+        <input class="form-control" id="Identifier" name="Identifier" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="Password">Password (8+ chars)</label>
+        <input class="form-control" id="Password" name="Password" type="password" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label" for="HubId">Hub id (kitchen only)</label>
+        <input class="form-control" id="HubId" name="HubId" type="number" />
+    </div>
+    <div class="col-12"><button class="btn btn-primary" type="submit">Create</button></div>
+</form>

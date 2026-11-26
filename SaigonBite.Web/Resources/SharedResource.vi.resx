@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavBrand" xml:space="preserve"><value>SaigonBite</value></data>
+  <data name="NavHome" xml:space="preserve"><value>Trang chủ</value></data>
+  <data name="NavOrder" xml:space="preserve"><value>Đặt hàng</value></data>
+  <data name="NavMenu" xml:space="preserve"><value>Thực đơn</value></data>
+  <data name="NavMyOrders" xml:space="preserve"><value>Đơn của tôi</value></data>
+  <data name="NavDashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>
+  <data name="NavAccounts" xml:space="preserve"><value>Tài khoản</value></data>
+  <data name="NavProfile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="NavLogin" xml:space="preserve"><value>Đăng nhập</value></data>
+  <data name="NavRegister" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="NavLogout" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="NavPrivacy" xml:space="preserve"><value>Quyền riêng tư</value></data>
+  <data name="Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
+  <data name="English" xml:space="preserve"><value>EN</value></data>
+  <data name="Vietnamese" xml:space="preserve"><value>VI</value></data>
+  <data name="Footer" xml:space="preserve"><value>© 2026 SaigonBite - giao đồ ăn từ bếp cloud</value></data>
+  <data name="HubsTitle" xml:space="preserve"><value>Chọn bếp</value></data>
+  <data name="HubsSubtitle" xml:space="preserve"><value>Chọn một hub để xem thực đơn. Tải trọng tính từ đơn Confirmed và Preparing.</value></data>
+  <data name="HubName" xml:space="preserve"><value>Bếp</value></data>
+  <data name="HubLoad" xml:space="preserve"><value>Tải trọng</value></data>
+  <data name="HubCapacity" xml:space="preserve"><value>Sức chứa</value></data>
+  <data name="HubOpen" xml:space="preserve"><value>Xem thực đơn</value></data>
+  <data name="HubBusy" xml:space="preserve"><value>Đông</value></data>
+  <data name="HubBusyMessage" xml:space="preserve"><value>Bếp này đang đông (từ 90%). Vui lòng chọn hub khác.</value></data>
+  <data name="HubQuiet" xml:space="preserve"><value>Bếp yên tĩnh: giảm 10%</value></data>
+  <data name="HubNoHubs" xml:space="preserve"><value>Hiện không có bếp nào.</value></data>
+  <data name="MenuTitle" xml:space="preserve"><value>Thực đơn</value></data>
+  <data name="MenuFor" xml:space="preserve"><value>Thực đơn của</value></data>
+  <data name="Brand" xml:space="preserve"><value>Thương hiệu</value></data>
+  <data name="Item" xml:space="preserve"><value>Món</value></data>
+  <data name="Category" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="Price" xml:space="preserve"><value>Giá</value></data>
+  <data name="Quantity" xml:space="preserve"><value>Số lượng (0-20)</value></data>
+  <data name="MenuAddToCart" xml:space="preserve"><value>Thêm vào giỏ</value></data>
+  <data name="MenuContinue" xml:space="preserve"><value>Tiếp tục thanh toán</value></data>
+  <data name="MenuEmpty" xml:space="preserve"><value>Không có món nào khả dụng tại bếp này.</value></data>
+  <data name="CartMax" xml:space="preserve"><value>Đơn tối đa 30 dòng; các dòng vượt quá sẽ bị từ chối khi tiếp tục.</value></data>
+  <data name="MenuBack" xml:space="preserve"><value>Quay lại danh sách bếp</value></data>
+  <data name="CheckoutTitle" xml:space="preserve"><value>Thanh toán</value></data>
+  <data name="CheckoutHub" xml:space="preserve"><value>Bếp</value></data>
+  <data name="DeliveryAddress" xml:space="preserve"><value>Địa chỉ giao hàng</value></data>
+  <data name="District" xml:space="preserve"><value>Quận (dùng để tính khoảng cách)</value></data>
+  <data name="HotelName" xml:space="preserve"><value>Tên khách sạn</value></data>
+  <data name="RoomNumber" xml:space="preserve"><value>Số phòng</value></data>
+  <data name="VoucherCode" xml:space="preserve"><value>Mã giảm giá (chỉ một mã)</value></data>
+  <data name="ApplyVoucher" xml:space="preserve"><value>Áp dụng / xem trước</value></data>
+  <data name="PriceBreakdown" xml:space="preserve"><value>Bảng giá chi tiết</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Tạm tính</value></data>
+  <data name="QuietDiscount" xml:space="preserve"><value>Giảm bếp yên tĩnh</value></data>
+  <data name="VoucherDiscount" xml:space="preserve"><value>Giảm voucher</value></data>
+  <data name="DeliveryFee" xml:space="preserve"><value>Phí giao hàng</value></data>
+  <data name="RushSurcharge" xml:space="preserve"><value>Phụ phí giờ cao điểm</value></data>
+  <data name="RainSurcharge" xml:space="preserve"><value>Phụ phí mưa</value></data>
+  <data name="Total" xml:space="preserve"><value>Tổng cộng</value></data>
+  <data name="PaymentMethod" xml:space="preserve"><value>Phương thức thanh toán</value></data>
+  <data name="PlaceOrder" xml:space="preserve"><value>Đặt hàng</value></data>
+  <data name="CheckoutBack" xml:space="preserve"><value>Quay lại thực đơn</value></data>
+  <data name="CartSummary" xml:space="preserve"><value>Giỏ hàng của bạn</value></data>
+  <data name="Qty" xml:space="preserve"><value>SL</value></data>
+  <data name="UnitPrice" xml:space="preserve"><value>Đơn giá</value></data>
+  <data name="LineTotal" xml:space="preserve"><value>Thành tiền</value></data>
+  <data name="VoucherNote" xml:space="preserve"><value>Ghi chú voucher</value></data>
+  <data name="NoPreview" xml:space="preserve"><value>Nhập địa chỉ và áp dụng voucher để xem giá cuối.</value></data>
+  <data name="TouristInfo" xml:space="preserve"><value>Thông tin lưu trú cho khách du lịch</value></data>
+  <data name="SelectPayment" xml:space="preserve"><value>Chọn một phương thức được phép cho tài khoản và tổng tiền này.</value></data>
+  <data name="PreviewTitle" xml:space="preserve"><value>Xem trước</value></data>
+  <data name="TrackTitle" xml:space="preserve"><value>Theo dõi đơn hàng</value></data>
+  <data name="OrderNumber" xml:space="preserve"><value>Đơn</value></data>
+  <data name="StatusTimeline" xml:space="preserve"><value>Tiến trình trạng thái</value></data>
+  <data name="StatusHistory" xml:space="preserve"><value>Lịch sử trạng thái</value></data>
+  <data name="OrderTotal" xml:space="preserve"><value>Tổng đơn</value></data>
+  <data name="DeliveryTo" xml:space="preserve"><value>Giao đến</value></data>
+  <data name="From" xml:space="preserve"><value>Từ</value></data>
+  <data name="To" xml:space="preserve"><value>Sang</value></data>
+  <data name="ChangedAt" xml:space="preserve"><value>Thay đổi lúc</value></data>
+  <data name="Actor" xml:space="preserve"><value>Người thực hiện</value></data>
+  <data name="Reason" xml:space="preserve"><value>Lý do</value></data>
+  <data name="EditItems" xml:space="preserve"><value>Sửa món</value></data>
+  <data name="CancelOrder" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="CancelReason" xml:space="preserve"><value>Lý do hủy</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Lưu thay đổi</value></data>
+  <data name="TrackBack" xml:space="preserve"><value>Quay lại đơn của tôi</value></data>
+  <data name="HistoryEmpty" xml:space="preserve"><value>Chưa có thay đổi trạng thái.</value></data>
+  <data name="PlacedAt" xml:space="preserve"><value>Đặt lúc</value></data>
+  <data name="Distance" xml:space="preserve"><value>Khoảng cách</value></data>
+  <data name="Rain" xml:space="preserve"><value>Cờ mưa lúc đặt</value></data>
+  <data name="MyOrdersTitle" xml:space="preserve"><value>Đơn của tôi</value></data>
+  <data name="Status" xml:space="preserve"><value>Trạng thái</value></data>
+  <data name="Lines" xml:space="preserve"><value>Dòng</value></data>
+  <data name="Address" xml:space="preserve"><value>Địa chỉ</value></data>
+  <data name="View" xml:space="preserve"><value>Xem</value></data>
+  <data name="NoOrders" xml:space="preserve"><value>Bạn chưa đặt đơn nào.</value></data>
+  <data name="EditTitle" xml:space="preserve"><value>Sửa món trong đơn</value></data>
+  <data name="EditBack" xml:space="preserve"><value>Quay lại theo dõi</value></data>
+  <data name="Error" xml:space="preserve"><value>Vui lòng kiểm tra thông tin được đánh dấu.</value></data>
+  <data name="Notice" xml:space="preserve"><value>Hoàn tất.</value></data>
+  <data name="Yes" xml:space="preserve"><value>Có</value></data>
+  <data name="No" xml:space="preserve"><value>Không</value></data>
+  <data name="ErrorBelowMinimum" xml:space="preserve"><value>BR1: tạm tính đồ ăn phải từ 50.000 VND trở lên.</value></data>
+  <data name="ErrorOutOfCoverage" xml:space="preserve"><value>BR2: địa chỉ này cách bếp hơn 8 km.</value></data>
+  <data name="ErrorHubBusy" xml:space="preserve"><value>BR8: bếp đang đạt từ 90% tải trọng; chọn hub khác hoặc thử lại sau.</value></data>
+  <data name="ErrorGeneric" xml:space="preserve"><value>Yêu cầu bị từ chối bởi một luật nghiệp vụ.</value></data>
+  <data name="OrderPlaced" xml:space="preserve"><value>Đặt hàng thành công.</value></data>
+  <data name="OrderCancelled" xml:space="preserve"><value>Đơn đã được hủy.</value></data>
+  <data name="ItemsUpdated" xml:space="preserve"><value>Đã cập nhật món.</value></data>
+  <data name="EditOnlyWhilePlaced" xml:space="preserve"><value>Chỉ sửa món khi đơn còn Placed (BR17).</value></data>
+  <data name="StatusPlaced" xml:space="preserve"><value>Đã đặt</value></data>
+  <data name="StatusConfirmed" xml:space="preserve"><value>Đã xác nhận</value></data>
+  <data name="StatusPreparing" xml:space="preserve"><value>Đang chuẩn bị</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>Sẵn sàng</value></data>
+  <data name="StatusOutForDelivery" xml:space="preserve"><value>Đang giao</value></data>
+  <data name="StatusDelivered" xml:space="preserve"><value>Đã giao</value></data>
+  <data name="StatusCancelled" xml:space="preserve"><value>Đã hủy</value></data>
+  <data name="StatusFailed" xml:space="preserve"><value>Giao thất bại</value></data>
+  <data name="PaymentMomo" xml:space="preserve"><value>MoMo</value></data>
+  <data name="PaymentVnPay" xml:space="preserve"><value>VNPay</value></data>
+  <data name="PaymentApplePay" xml:space="preserve"><value>Apple Pay</value></data>
+  <data name="PaymentPayPal" xml:space="preserve"><value>PayPal</value></data>
+  <data name="PaymentCod" xml:space="preserve"><value>COD (thanh toán khi nhận)</value></data>
+  <data name="CategoryNoodles" xml:space="preserve"><value>Mì</value></data>
+  <data name="CategoryRice" xml:space="preserve"><value>Cơm</value></data>
+  <data name="CategoryDrinks" xml:space="preserve"><value>Đồ uống</value></data>
+  <data name="CategoryDessert" xml:space="preserve"><value>Tráng miệng</value></data>
+  <data name="District1" xml:space="preserve"><value>Quận 1</value></data>
+  <data name="District2" xml:space="preserve"><value>Quận 2</value></data>
+  <data name="BinhThanh" xml:space="preserve"><value>Bình Thạnh</value></data>
+  <data name="ThuDuc" xml:space="preserve"><value>Thủ Đức</value></data>
+  <data name="District7" xml:space="preserve"><value>Quận 7</value></data>
+  <data name="HomeTitle" xml:space="preserve"><value>Chào mừng đến SaigonBite</value></data>
+  <data name="HomeIntro" xml:space="preserve"><value>Chọn bếp, thêm món vào giỏ và theo dõi đơn từ lúc đặt đến lúc giao.</value></data>
+  <data name="ErrorPayment" xml:space="preserve"><value>BR13: không có phương thức thanh toán nào phù hợp với tài khoản và tổng tiền này. COD không dùng được trên 1.000.000 VND.</value></data>
+  <data name="ErrorLineRules" xml:space="preserve"><value>BR12: đơn cần 1-30 dòng, mỗi dòng số lượng 1-20 và chỉ dùng món còn bán của thương hiệu bếp này.</value></data>
+  <data name="ErrorCancel" xml:space="preserve"><value>BR16: khách không thể hủy đơn này nữa.</value></data>
+  <data name="ErrorEdit" xml:space="preserve"><value>BR17: chỉ sửa món khi đơn còn ở trạng thái Placed.</value></data>
+</root>

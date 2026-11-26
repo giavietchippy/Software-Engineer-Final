@@ -1,0 +1,204 @@
+@model TrackViewModel
+@{
+    ViewData["Title"] = L["TrackTitle"];
+
+    var flow = new[]
+    {
+        OrderStatus.Placed, OrderStatus.Confirmed, OrderStatus.Preparing,
+        OrderStatus.Ready, OrderStatus.OutForDelivery, OrderStatus.Delivered
+    };
+    var terminal = Model.Detail.Status is OrderStatus.Cancelled or OrderStatus.Failed;
+    var current = (int)Model.Detail.Status;
+}
+
+@functions {
+    private string StatusText(OrderStatus status) => L["Status" + status].Value;
+
+    private string NoticeText()
+    {
+        return Model.Notice switch
+        {
+            "OrderPlaced" => L["OrderPlaced"].Value,
+            "OrderCancelled" => L["OrderCancelled"].Value,
+            "ItemsUpdated" => L["ItemsUpdated"].Value,
+            "EditOnlyWhilePlaced" => L["EditOnlyWhilePlaced"].Value,
+            _ => L["Notice"].Value
+        };
+    }
+}
+
+<div class="row g-3">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h1 class="h3 mb-0">@L["TrackTitle"] — @L["OrderNumber"] @Model.Detail.Id</h1>
+        <a asp-action="MyOrders" class="btn btn-outline-secondary">@L["TrackBack"]</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Notice) && Model.Notice != "Notice")
+    {
+        <div class="col-12"><div class="alert alert-success" role="alert">@NoticeText()</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="col-12"><div class="alert alert-danger" role="alert">@Model.Error</div></div>
+    }
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header h6 mb-0">@L["StatusTimeline"]</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    @foreach (var step in flow)
+                    {
+                        var done = !terminal && current >= (int)step;
+                        var active = !terminal && current == (int)step;
+                        var border = active ? "border-primary" : done ? "border-success" : "border-light";
+                        var badge = active ? "bg-primary" : done ? "bg-success" : "bg-secondary";
+                        <div class="col-6 col-md-2">
+                            <div class="card h-100 text-center @border">
+                                <div class="card-body p-2">
+                                    <span class="badge @badge">@StatusText(step)</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="col-6 col-md-2">
+                        <div class="card h-100 text-center @(Model.Detail.Status == OrderStatus.Cancelled ? "border-danger" : "border-light")">
+                            <div class="card-body p-2">
+                                <span class="badge @(Model.Detail.Status == OrderStatus.Cancelled ? "bg-danger" : "bg-secondary")">
+                                    @L["StatusCancelled"]
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <div class="card h-100 text-center @(Model.Detail.Status == OrderStatus.Failed ? "border-danger" : "border-light")">
+                            <div class="card-body p-2">
+                                <span class="badge @(Model.Detail.Status == OrderStatus.Failed ? "bg-danger" : "bg-secondary")">
+                                    @L["StatusFailed"]
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (terminal)
+                {
+                    <div class="alert alert-danger mt-3 mb-0" role="alert">
+                        @L["Status"]: <strong>@StatusText(Model.Detail.Status)</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header h6 mb-0">@L["OrderNumber"] @Model.Detail.Id</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">@L["Status"]</dt>
+                    <dd class="col-7"><span class="badge bg-info text-dark">@StatusText(Model.Detail.Status)</span></dd>
+                    <dt class="col-5">@L["OrderTotal"]</dt>
+                    <dd class="col-7 fw-bold">@Model.Detail.Total.ToString("N0")</dd>
+                    <dt class="col-5">@L["PlacedAt"]</dt>
+                    <dd class="col-7">@Model.Detail.PlacedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt class="col-5">@L["DeliveryTo"]</dt>
+                    <dd class="col-7">@Model.Detail.DeliveryAddress</dd>
+                    @if (!string.IsNullOrWhiteSpace(Model.Detail.HotelName))
+                    {
+                        <dt class="col-5">@L["HotelName"]</dt>
+                        <dd class="col-7">@Model.Detail.HotelName / @Model.Detail.RoomNumber</dd>
+                    }
+                    <dt class="col-5">@L["Distance"]</dt>
+                    <dd class="col-7">@Model.Detail.DistanceKm km</dd>
+                    <dt class="col-5">@L["Rain"]</dt>
+                    <dd class="col-7">@(Model.Detail.HeavyRain ? L["Yes"] : L["No"])</dd>
+                    @if (!string.IsNullOrWhiteSpace(Model.Detail.VoucherNote))
+                    {
+                        <dt class="col-5">@L["VoucherNote"]</dt>
+                        <dd class="col-7">@Model.Detail.VoucherNote</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header h6 mb-0">@L["CartSummary"]</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["Item"]</th>
+                            <th class="text-center">@L["Qty"]</th>
+                            <th class="text-end">@L["LineTotal"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in Model.Detail.Lines)
+                        {
+                            <tr>
+                                <td>@line.ItemName</td>
+                                <td class="text-center">@line.Quantity</td>
+                                <td class="text-end">@((line.UnitPrice * line.Quantity).ToString("N0"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            @if (Model.Actions.CanEdit)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Detail.Id" class="btn btn-outline-primary">@L["EditItems"]</a>
+            }
+            @if (Model.Actions.CanCancel)
+            {
+                <form asp-action="Cancel" method="post" class="row g-2 w-100">
+                    <input type="hidden" name="id" value="@Model.Detail.Id" />
+                    <div class="col-12">
+                        <label class="form-label" for="cancel-reason">@L["CancelReason"]</label>
+                        <input class="form-control" id="cancel-reason" name="reason" />
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-outline-danger">@L["CancelOrder"]</button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+        <div class="card">
+            <div class="card-header h6 mb-0">@L["StatusHistory"]</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["From"]</th>
+                            <th>@L["To"]</th>
+                            <th>@L["ChangedAt"]</th>
+                            <th>@L["Actor"]</th>
+                            <th>@L["Reason"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.History.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-muted">@L["HistoryEmpty"]</td></tr>
+                        }
+                        @foreach (var row in Model.History)
+                        {
+                            <tr>
+                                <td>@(row.FromStatus is { } fromStatus ? StatusText(fromStatus) : "—")</td>
+                                <td>@StatusText(row.ToStatus)</td>
+                                <td>@row.ChangedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@row.ActorIdentifier</td>
+                                <td>@row.Reason</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

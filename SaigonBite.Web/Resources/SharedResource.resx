@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavBrand" xml:space="preserve"><value>SaigonBite</value></data>
+  <data name="NavHome" xml:space="preserve"><value>Home</value></data>
+  <data name="NavOrder" xml:space="preserve"><value>Order</value></data>
+  <data name="NavMenu" xml:space="preserve"><value>Menu</value></data>
+  <data name="NavMyOrders" xml:space="preserve"><value>My orders</value></data>
+  <data name="NavDashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="NavAccounts" xml:space="preserve"><value>Accounts</value></data>
+  <data name="NavProfile" xml:space="preserve"><value>Profile</value></data>
+  <data name="NavLogin" xml:space="preserve"><value>Log in</value></data>
+  <data name="NavRegister" xml:space="preserve"><value>Register</value></data>
+  <data name="NavLogout" xml:space="preserve"><value>Log out</value></data>
+  <data name="NavPrivacy" xml:space="preserve"><value>Privacy</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="English" xml:space="preserve"><value>EN</value></data>
+  <data name="Vietnamese" xml:space="preserve"><value>VI</value></data>
+  <data name="Footer" xml:space="preserve"><value>© 2026 SaigonBite - cloud kitchen delivery</value></data>
+  <data name="HubsTitle" xml:space="preserve"><value>Choose a kitchen</value></data>
+  <data name="HubsSubtitle" xml:space="preserve"><value>Pick a hub to see its menu. Load counts Confirmed and Preparing orders.</value></data>
+  <data name="HubName" xml:space="preserve"><value>Kitchen</value></data>
+  <data name="HubLoad" xml:space="preserve"><value>Load</value></data>
+  <data name="HubCapacity" xml:space="preserve"><value>Capacity</value></data>
+  <data name="HubOpen" xml:space="preserve"><value>Open menu</value></data>
+  <data name="HubBusy" xml:space="preserve"><value>Busy</value></data>
+  <data name="HubBusyMessage" xml:space="preserve"><value>This kitchen is busy (90% or more). Please choose another hub.</value></data>
+  <data name="HubQuiet" xml:space="preserve"><value>Quiet Kitchen: 10% off</value></data>
+  <data name="HubNoHubs" xml:space="preserve"><value>No kitchens are available.</value></data>
+  <data name="MenuTitle" xml:space="preserve"><value>Menu</value></data>
+  <data name="MenuFor" xml:space="preserve"><value>Menu for</value></data>
+  <data name="Brand" xml:space="preserve"><value>Brand</value></data>
+  <data name="Item" xml:space="preserve"><value>Item</value></data>
+  <data name="Category" xml:space="preserve"><value>Category</value></data>
+  <data name="Price" xml:space="preserve"><value>Price</value></data>
+  <data name="Quantity" xml:space="preserve"><value>Quantity (0-20)</value></data>
+  <data name="MenuAddToCart" xml:space="preserve"><value>Add to cart</value></data>
+  <data name="MenuContinue" xml:space="preserve"><value>Continue to checkout</value></data>
+  <data name="MenuEmpty" xml:space="preserve"><value>No available items for this kitchen.</value></data>
+  <data name="CartMax" xml:space="preserve"><value>An order can have at most 30 lines; extra lines are rejected when you continue.</value></data>
+  <data name="MenuBack" xml:space="preserve"><value>Back to kitchens</value></data>
+  <data name="CheckoutTitle" xml:space="preserve"><value>Checkout</value></data>
+  <data name="CheckoutHub" xml:space="preserve"><value>Kitchen</value></data>
+  <data name="DeliveryAddress" xml:space="preserve"><value>Delivery address</value></data>
+  <data name="District" xml:space="preserve"><value>District (feeds the distance service)</value></data>
+  <data name="HotelName" xml:space="preserve"><value>Hotel name</value></data>
+  <data name="RoomNumber" xml:space="preserve"><value>Room number</value></data>
+  <data name="VoucherCode" xml:space="preserve"><value>Voucher code (one only)</value></data>
+  <data name="ApplyVoucher" xml:space="preserve"><value>Apply / preview</value></data>
+  <data name="PriceBreakdown" xml:space="preserve"><value>Price breakdown</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Subtotal</value></data>
+  <data name="QuietDiscount" xml:space="preserve"><value>Quiet Kitchen discount</value></data>
+  <data name="VoucherDiscount" xml:space="preserve"><value>Voucher discount</value></data>
+  <data name="DeliveryFee" xml:space="preserve"><value>Delivery fee</value></data>
+  <data name="RushSurcharge" xml:space="preserve"><value>Rush-hour surcharge</value></data>
+  <data name="RainSurcharge" xml:space="preserve"><value>Rain surcharge</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="PaymentMethod" xml:space="preserve"><value>Payment method</value></data>
+  <data name="PlaceOrder" xml:space="preserve"><value>Place order</value></data>
+  <data name="CheckoutBack" xml:space="preserve"><value>Back to menu</value></data>
+  <data name="CartSummary" xml:space="preserve"><value>Your cart</value></data>
+  <data name="Qty" xml:space="preserve"><value>Qty</value></data>
+  <data name="UnitPrice" xml:space="preserve"><value>Unit price</value></data>
+  <data name="LineTotal" xml:space="preserve"><value>Line total</value></data>
+  <data name="VoucherNote" xml:space="preserve"><value>Voucher note</value></data>
+  <data name="NoPreview" xml:space="preserve"><value>Enter your address and apply a voucher to see the final price.</value></data>
+  <data name="TouristInfo" xml:space="preserve"><value>Tourist delivery details</value></data>
+  <data name="SelectPayment" xml:space="preserve"><value>Choose one of the methods allowed for your account and total.</value></data>
+  <data name="PreviewTitle" xml:space="preserve"><value>Preview</value></data>
+  <data name="TrackTitle" xml:space="preserve"><value>Order tracking</value></data>
+  <data name="OrderNumber" xml:space="preserve"><value>Order</value></data>
+  <data name="StatusTimeline" xml:space="preserve"><value>Status timeline</value></data>
+  <data name="StatusHistory" xml:space="preserve"><value>Status history</value></data>
+  <data name="OrderTotal" xml:space="preserve"><value>Order total</value></data>
+  <data name="DeliveryTo" xml:space="preserve"><value>Deliver to</value></data>
+  <data name="From" xml:space="preserve"><value>From</value></data>
+  <data name="To" xml:space="preserve"><value>To</value></data>
+  <data name="ChangedAt" xml:space="preserve"><value>Changed at</value></data>
+  <data name="Actor" xml:space="preserve"><value>Actor</value></data>
+  <data name="Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="EditItems" xml:space="preserve"><value>Edit items</value></data>
+  <data name="CancelOrder" xml:space="preserve"><value>Cancel order</value></data>
+  <data name="CancelReason" xml:space="preserve"><value>Cancellation reason</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="TrackBack" xml:space="preserve"><value>Back to my orders</value></data>
+  <data name="HistoryEmpty" xml:space="preserve"><value>No status changes recorded.</value></data>
+  <data name="PlacedAt" xml:space="preserve"><value>Placed at</value></data>
+  <data name="Distance" xml:space="preserve"><value>Distance</value></data>
+  <data name="Rain" xml:space="preserve"><value>Rain flag at placement</value></data>
+  <data name="MyOrdersTitle" xml:space="preserve"><value>My orders</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Lines" xml:space="preserve"><value>Lines</value></data>
+  <data name="Address" xml:space="preserve"><value>Address</value></data>
+  <data name="View" xml:space="preserve"><value>View</value></data>
+  <data name="NoOrders" xml:space="preserve"><value>You have not placed an order yet.</value></data>
+  <data name="EditTitle" xml:space="preserve"><value>Edit order items</value></data>
+  <data name="EditBack" xml:space="preserve"><value>Back to tracking</value></data>
+  <data name="Error" xml:space="preserve"><value>Please check the highlighted problem.</value></data>
+  <data name="Notice" xml:space="preserve"><value>Done.</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="ErrorBelowMinimum" xml:space="preserve"><value>BR1: the food subtotal must be at least 50,000 VND.</value></data>
+  <data name="ErrorOutOfCoverage" xml:space="preserve"><value>BR2: this address is farther than 8 km from the kitchen.</value></data>
+  <data name="ErrorHubBusy" xml:space="preserve"><value>BR8: this kitchen is at 90% load or above; choose another hub or try later.</value></data>
+  <data name="ErrorGeneric" xml:space="preserve"><value>The request was rejected by a business rule.</value></data>
+  <data name="OrderPlaced" xml:space="preserve"><value>Order placed successfully.</value></data>
+  <data name="OrderCancelled" xml:space="preserve"><value>Order cancelled.</value></data>
+  <data name="ItemsUpdated" xml:space="preserve"><value>Items updated.</value></data>
+  <data name="EditOnlyWhilePlaced" xml:space="preserve"><value>Items can only be edited while the order is Placed (BR17).</value></data>
+  <data name="StatusPlaced" xml:space="preserve"><value>Placed</value></data>
+  <data name="StatusConfirmed" xml:space="preserve"><value>Confirmed</value></data>
+  <data name="StatusPreparing" xml:space="preserve"><value>Preparing</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="StatusOutForDelivery" xml:space="preserve"><value>Out for Delivery</value></data>
+  <data name="StatusDelivered" xml:space="preserve"><value>Delivered</value></data>
+  <data name="StatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="StatusFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="PaymentMomo" xml:space="preserve"><value>MoMo</value></data>
+  <data name="PaymentVnPay" xml:space="preserve"><value>VNPay</value></data>
+  <data name="PaymentApplePay" xml:space="preserve"><value>Apple Pay</value></data>
+  <data name="PaymentPayPal" xml:space="preserve"><value>PayPal</value></data>
+  <data name="PaymentCod" xml:space="preserve"><value>COD (cash on delivery)</value></data>
+  <data name="CategoryNoodles" xml:space="preserve"><value>Noodles</value></data>
+  <data name="CategoryRice" xml:space="preserve"><value>Rice</value></data>
+  <data name="CategoryDrinks" xml:space="preserve"><value>Drinks</value></data>
+  <data name="CategoryDessert" xml:space="preserve"><value>Dessert</value></data>
+  <data name="District1" xml:space="preserve"><value>District 1</value></data>
+  <data name="District2" xml:space="preserve"><value>District 2</value></data>
+  <data name="BinhThanh" xml:space="preserve"><value>Binh Thanh</value></data>
+  <data name="ThuDuc" xml:space="preserve"><value>Thu Duc</value></data>
+  <data name="District7" xml:space="preserve"><value>District 7</value></data>
+  <data name="HomeTitle" xml:space="preserve"><value>Welcome to SaigonBite</value></data>
+  <data name="HomeIntro" xml:space="preserve"><value>Choose a kitchen, build your cart, and track your order from placement to delivery.</value></data>
+  <data name="ErrorPayment" xml:space="preserve"><value>BR13: no payment method is allowed for this account and total. COD is unavailable above 1,000,000 VND.</value></data>
+  <data name="ErrorLineRules" xml:space="preserve"><value>BR12: an order needs 1-30 lines, each quantity 1-20, using available items from this hub's brands.</value></data>
+  <data name="ErrorCancel" xml:space="preserve"><value>BR16: this order can no longer be cancelled by the customer.</value></data>
+  <data name="ErrorEdit" xml:space="preserve"><value>BR17: items can only be edited while the order is Placed.</value></data>
+</root>

@@ -1,0 +1,86 @@
+@{
+    ViewData["Title"] = "Admin dashboard";
+}
+@* N-03: Chart.js 4.4.1 is vendored under wwwroot/lib, so the dashboard works offline. *@
+<h1>Admin dashboard (FR-R3)</h1>
+
+<div class="row mb-3 g-2">
+    <div class="col-md-3">
+        <label class="form-label" for="from">From</label>
+        <input class="form-control" type="date" id="from" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="to">To</label>
+        <input class="form-control" type="date" id="to" />
+    </div>
+    <div class="col-md-3 align-self-end">
+        <button class="btn btn-primary" id="refresh">Refresh</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6"><canvas id="categoryChart"></canvas></div>
+    <div class="col-md-6"><canvas id="methodChart"></canvas></div>
+</div>
+
+<h2 class="mt-4">Current hub load</h2>
+<table class="table table-sm col-md-6">
+    <thead><tr><th>Hub</th><th>Load</th></tr></thead>
+    <tbody id="loadBody"></tbody>
+</table>
+
+@section Scripts {
+    <script src="~/lib/chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            const day = 24 * 60 * 60 * 1000;
+            const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            const today = new Date();
+            document.getElementById('from').value = iso(new Date(today.getTime() - 30 * day));
+            document.getElementById('to').value = iso(today); // A-16: inclusive 'to' date
+
+            let categoryChart = null, methodChart = null;
+            const query = () => '?from=' + encodeURIComponent(document.getElementById('from').value)
+                + '&to=' + encodeURIComponent(document.getElementById('to').value);
+
+            async function refresh() {
+                const q = query();
+                const [byCategory, byMethod, loads] = await Promise.all([
+                    fetch('@Url.Action("RevenueByCategory", "Admin")' + q).then(r => r.json()),
+                    fetch('@Url.Action("RevenueByMethod", "Admin")' + q).then(r => r.json()),
+                    fetch('@Url.Action("CurrentHubLoad", "Admin")').then(r => r.json())
+                ]);
+
+                if (categoryChart) categoryChart.destroy();
+                categoryChart = new Chart(document.getElementById('categoryChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: byCategory.map(x => x.category),
+                        datasets: [{ label: 'Revenue by category (VND)', data: byCategory.map(x => x.revenue) }]
+                    }
+                });
+
+                if (methodChart) methodChart.destroy();
+                methodChart = new Chart(document.getElementById('methodChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: byMethod.map(x => 'Method ' + x.method),
+                        datasets: [{ label: 'Revenue by payment method (VND)', data: byMethod.map(x => x.revenue) }]
+                    }
+                });
+
+                const body = document.getElementById('loadBody');
+                body.innerHTML = '';
+                loads.forEach(l => {
+                    const row = document.createElement('tr');
+                    const name = document.createElement('td'); name.textContent = l.hubName;
+                    const load = document.createElement('td'); load.textContent = l.currentLoad;
+                    row.appendChild(name); row.appendChild(load); body.appendChild(row);
+                });
+            }
+
+            document.getElementById('refresh').addEventListener('click', refresh);
+            refresh();
+        })();
+    </script>
+}

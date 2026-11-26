@@ -1,0 +1,34 @@
+## .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Bb]uild/
+[Aa][Rr][Mm]/
+x64/
+x86/
+
+## Visual Studio / Rider / user files
+.vs/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+## Test and coverage results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+coverage*.json
+coverage*.xml
+
+## Local secrets / overrides
+appsettings.Development.json
+appsettings.*.Development.json
+secrets.json
+
+## OS files
+.DS_Store
+Thumbs.db
