@@ -160,7 +160,7 @@ public class SaigonBiteDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // A-16: non-unique index because cancelled/expired rows stay for the demo; services
+        // A-09: non-unique index because cancelled/expired rows stay for the demo; services
         // reject a second active pending registration for the same normalised identifier.
         modelBuilder.Entity<PendingRegistration>(e =>
         {
@@ -227,49 +227,17 @@ public class SaigonBiteDbContext : DbContext
                 ValidTo = new DateOnly(2026, 12, 31), IsActive = false
             });
 
-        // BR18: seed passwords are >= 8 chars and stored only as deterministic PBKDF2 hashes.
-        // Registration later MUST use ASP.NET Core PasswordHasher<TUser> with a random salt.
+        // A-22: HasData fixes identities only; SeedUserInitializer sets random-salt hashes at startup.
+        // Seed passwords come from configuration/environment variables and are at least 8 chars (BR18).
         modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                Id = 1, Role = Role.Admin, Identifier = "admin",
-                PasswordHash = SeedPasswordHasher.Hash("Admin@123", "seed-admin"), IsActive = true
-            },
-            new User
-            {
-                Id = 2, Role = Role.KitchenStaff, Identifier = "kitchen-d1",
-                PasswordHash = SeedPasswordHasher.Hash("KitchenD1@123", "seed-kitchen-d1"), IsActive = true, HubId = 1
-            },
-            new User
-            {
-                Id = 3, Role = Role.KitchenStaff, Identifier = "kitchen-bt",
-                PasswordHash = SeedPasswordHasher.Hash("KitchenBT@123", "seed-kitchen-bt"), IsActive = true, HubId = 2
-            },
-            new User
-            {
-                Id = 4, Role = Role.KitchenStaff, Identifier = "kitchen-td",
-                PasswordHash = SeedPasswordHasher.Hash("KitchenTD@123", "seed-kitchen-td"), IsActive = true, HubId = 3
-            },
-            new User
-            {
-                Id = 5, Role = Role.Shipper, Identifier = "shipper1",
-                PasswordHash = SeedPasswordHasher.Hash("Shipper1@123", "seed-shipper1"), IsActive = true
-            },
-            new User
-            {
-                Id = 6, Role = Role.Shipper, Identifier = "shipper2",
-                PasswordHash = SeedPasswordHasher.Hash("Shipper2@123", "seed-shipper2"), IsActive = true
-            },
-            new User
-            {
-                Id = 7, Role = Role.Local, Identifier = "0912345678",
-                PasswordHash = SeedPasswordHasher.Hash("Local@123", "seed-local"), IsActive = true
-            },
-            new User
-            {
-                Id = 8, Role = Role.Tourist, Identifier = "A1234567",
-                PasswordHash = SeedPasswordHasher.Hash("Tourist@123", "seed-tourist"), IsActive = true
-            });
+            new User { Id = 1, Role = Role.Admin, Identifier = "admin", PasswordHash = SeedCredential.PendingHash, IsActive = true },
+            new User { Id = 2, Role = Role.KitchenStaff, Identifier = "kitchen-d1", PasswordHash = SeedCredential.PendingHash, IsActive = true, HubId = 1 },
+            new User { Id = 3, Role = Role.KitchenStaff, Identifier = "kitchen-bt", PasswordHash = SeedCredential.PendingHash, IsActive = true, HubId = 2 },
+            new User { Id = 4, Role = Role.KitchenStaff, Identifier = "kitchen-td", PasswordHash = SeedCredential.PendingHash, IsActive = true, HubId = 3 },
+            new User { Id = 5, Role = Role.Shipper, Identifier = "shipper1", PasswordHash = SeedCredential.PendingHash, IsActive = true },
+            new User { Id = 6, Role = Role.Shipper, Identifier = "shipper2", PasswordHash = SeedCredential.PendingHash, IsActive = true },
+            new User { Id = 7, Role = Role.Local, Identifier = "0912345678", PasswordHash = SeedCredential.PendingHash, IsActive = true },
+            new User { Id = 8, Role = Role.Tourist, Identifier = "A1234567", PasswordHash = SeedCredential.PendingHash, IsActive = true });
 
         modelBuilder.Entity<LocalCustomerProfile>().HasData(
             new LocalCustomerProfile { Id = 1, UserId = 7, Mobile = "0912345678" });

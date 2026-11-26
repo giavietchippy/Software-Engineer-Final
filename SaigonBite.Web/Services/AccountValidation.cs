@@ -33,7 +33,7 @@ public static class AccountValidation
 
     public static bool IsCustomer(Role role) => role is Role.Local or Role.Tourist;
 
-    /// <summary>A-16: uniqueness includes soft-deleted users and active pending registrations.</summary>
+    /// <summary>A-09: uniqueness includes soft-deleted users and active pending registrations.</summary>
     public static async Task<bool> IdentifierTakenAsync(
         SaigonBiteDbContext db, string normalized, int? excludeUserId = null, int? excludePendingId = null)
     {

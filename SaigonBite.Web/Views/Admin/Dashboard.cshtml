@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Admin dashboard";
 }
-@* A-24: Chart.js is loaded from a public CDN, so this minimal dashboard needs internet in the demo. *@
+@* A-24: Chart.js 4.4.1 is vendored under wwwroot/lib, so the dashboard works offline. *@
 <h1>Admin dashboard (FR-R3)</h1>
 
 <div class="row mb-3 g-2">
@@ -30,14 +30,14 @@
 </table>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/lib/chart.js/4.4.1/chart.umd.min.js"></script>
     <script>
         (function () {
             const day = 24 * 60 * 60 * 1000;
             const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
             const today = new Date();
             document.getElementById('from').value = iso(new Date(today.getTime() - 30 * day));
-            document.getElementById('to').value = iso(new Date(today.getTime() + day));
+            document.getElementById('to').value = iso(today); // A-21: inclusive 'to' date
 
             let categoryChart = null, methodChart = null;
             const query = () => '?from=' + encodeURIComponent(document.getElementById('from').value)

@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SaigonBite.Core;
@@ -14,13 +12,12 @@ public sealed record LoginResult(bool Accepted, int? UserId, Role? Role, string?
 }
 
 /// <summary>
-/// BR18/A-17/A-22: login reads the identifier from the database (case-insensitive normalisation),
-/// refuses deactivated accounts, and verifies new random-salt hashes or legacy seed hashes.
+/// BR18/A-09/A-22: login reads the identifier from the database (case-insensitive normalisation),
+/// refuses deactivated accounts, and verifies only ASP.NET Core random-salt hashes. Seed accounts
+/// are finalised by SeedUserInitializer in every environment, including Production.
 /// </summary>
 public sealed class LoginService
 {
-    private const string LegacyPrefix = "PBKDF2-SHA256$";
-
     private readonly SaigonBiteDbContext _db;
     private readonly PasswordHasher<User> _hasher;
 
@@ -37,26 +34,12 @@ public sealed class LoginService
             .SingleOrDefaultAsync(u => u.Identifier == normalized);
         if (user is null || user.IsDeleted || !user.IsActive)
             return LoginResult.Fail("Account not found or deactivated.");
-        if (string.IsNullOrEmpty(password) || !VerifyPassword(user, password))
+        if (string.IsNullOrEmpty(password))
             return LoginResult.Fail("Incorrect password.");
-        return LoginResult.Ok(user);
-    }
-
-    private bool VerifyPassword(User user, string password)
-    {
-        // A-22: the deterministic seed hash is still accepted for DEV seed logins only.
-        // New accounts always use ASP.NET Core PasswordHasher<User> with a random salt (BR18).
-        if (user.PasswordHash.StartsWith(LegacyPrefix, StringComparison.Ordinal))
-        {
-            var parts = user.PasswordHash.Split('$');
-            if (parts.Length != 4) return false;
-            var candidate = SeedPasswordHasher.Hash(password, parts[2]).Split('$')[3];
-            return CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(parts[3]), Encoding.UTF8.GetBytes(candidate));
-        }
 
         var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, password);
-        return result is PasswordVerificationResult.Success
-            or PasswordVerificationResult.SuccessRehashNeeded;
+        return result is PasswordVerificationResult.Success or PasswordVerificationResult.SuccessRehashNeeded
+            ? LoginResult.Ok(user)
+            : LoginResult.Fail("Incorrect password.");
     }
 }

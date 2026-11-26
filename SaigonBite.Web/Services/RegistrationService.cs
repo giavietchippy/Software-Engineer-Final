@@ -26,7 +26,7 @@ public sealed record LocalProfileData(string Mobile);
 public sealed record TouristProfileData(string Passport, string Nationality, string Email);
 
 /// <summary>
-/// BR18/A-08/A-16/A-19: validate, hash with a random salt, stage the registration, and create the
+/// BR18/A-08/A-09: validate, hash with a random salt, stage the registration, and create the
 /// User/profile only after the simulated code is verified. No SMS/e-mail is sent in this demo.
 /// </summary>
 public sealed class RegistrationService
@@ -66,7 +66,7 @@ public sealed class RegistrationService
                 return RegistrationResult.Fail("A valid e-mail is required for a Tourist (BR18).");
         }
         if (await AccountValidation.IdentifierTakenAsync(_db, identifier))
-            return RegistrationResult.Fail("This identifier is already registered (BR18/A-16).");
+            return RegistrationResult.Fail("This identifier is already registered (BR18/A-09).");
 
         var now = VietnamTime.FromUtc(_clock.UtcNow);
         var profileJson = input.Role == Role.Local
@@ -100,7 +100,7 @@ public sealed class RegistrationService
         var now = VietnamTime.FromUtc(_clock.UtcNow);
         if (pending.ExpiresAt <= now)
         {
-            pending.IsCancelled = true; // A-19: expired staging is cancelled, never converted
+            pending.IsCancelled = true; // A-08: expired staging is cancelled, never converted
             await _db.SaveChangesAsync();
             return VerificationResult.Fail("The code has expired; please register again.");
         }
@@ -109,7 +109,7 @@ public sealed class RegistrationService
         {
             pending.Attempts++;
             if (pending.Attempts >= MaxAttempts)
-                pending.IsCancelled = true; // A-19: three failures cancel the pending row
+                pending.IsCancelled = true; // A-08: three failures cancel the pending row
             await _db.SaveChangesAsync();
             var left = Math.Max(0, MaxAttempts - pending.Attempts);
             return VerificationResult.Fail($"Incorrect code. {left} attempt(s) left.");
@@ -119,7 +119,7 @@ public sealed class RegistrationService
         {
             pending.IsCancelled = true;
             await _db.SaveChangesAsync();
-            return VerificationResult.Fail("This identifier is already registered (BR18/A-16).");
+            return VerificationResult.Fail("This identifier is already registered (BR18/A-09).");
         }
 
         await using var transaction = await _db.Database.BeginTransactionAsync();
@@ -154,7 +154,7 @@ public sealed class RegistrationService
                 });
             }
 
-            _db.PendingRegistrations.Remove(pending); // A-19: consumed staging is removed
+            _db.PendingRegistrations.Remove(pending); // A-08: consumed staging is removed
             await _db.SaveChangesAsync();
             await transaction.CommitAsync();
             return VerificationResult.Ok(user.Id, user.Role);

@@ -23,7 +23,7 @@ public sealed class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> RevenueByCategory(DateTime? from, DateTime? to)
     {
-        var range = Range(from, to); // A-21: [from, to), Vietnam local time
+        var range = Range(from, to); // A-21: inclusive 'to' date, Vietnam local time
         var report = await _reports.GetRevenueAsync(range.From, range.To);
         return Json(report.ByCategory);
     }
@@ -69,8 +69,9 @@ public sealed class AdminController : Controller
         return RedirectToAction(nameof(Accounts));
     }
 
+    // A-21: default to the last 30 calendar days INCLUDING today. ReportService adds the +1 day.
     private static (DateTime From, DateTime To) Range(DateTime? from, DateTime? to) =>
-        (from ?? DateTime.Today.AddDays(-30), to ?? DateTime.Today.AddDays(1));
+        (from ?? DateTime.Today.AddDays(-29), to ?? DateTime.Today);
 
     private int CurrentUserId()
     {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SaigonBite.Core;
 using SaigonBite.Web.Data;
 using SaigonBite.Web.Services;
@@ -7,7 +8,7 @@ using SaigonBite.Web.Services;
 namespace SaigonBite.Web.Tests;
 
 /// <summary>
-/// BR18/A-08/A-16/A-17/A-22: field boundaries, staged registration, random-salt hashes,
+/// BR18/A-08/A-09/A-22: field boundaries, staged registration, random-salt hashes,
 /// deactivation and staff management. Every rejection leaves the user table untouched.
 /// </summary>
 public sealed class AccountTests : IClassFixture<AccountTestDatabase>
@@ -116,7 +117,7 @@ public sealed class AccountTests : IClassFixture<AccountTestDatabase>
     }
 
     [Fact]
-    public async Task Duplicate_identifier_across_types_and_case_is_rejected_A16()
+    public async Task Duplicate_identifier_across_types_and_case_is_rejected_A09()
     {
         var before = await UserCountAsync();
         // Staff identifiers are not BR18-validated, so these can be Shipper identifiers.
@@ -221,9 +222,9 @@ public sealed class AccountTests : IClassFixture<AccountTestDatabase>
     }
 
     [Fact]
-    public async Task Deactivated_user_cannot_log_in_A17()
+    public async Task Deactivated_user_cannot_log_in_A09()
     {
-        var ok = await Login.LoginAsync("0912345678", "Local@123"); // dev seed legacy hash (A-22)
+        var ok = await Login.LoginAsync("0912345678", "Local@123"); // dev seed random-salt hash (A-22)
         Assert.True(ok.Accepted, ok.Error);
 
         Assert.True((await Accounts.DeactivateAsync(7, 1)).Accepted);
@@ -275,7 +276,7 @@ public sealed class AccountTests : IClassFixture<AccountTestDatabase>
     }
 
     [Fact]
-    public async Task Last_active_admin_cannot_be_deactivated_A17()
+    public async Task Last_active_admin_cannot_be_deactivated_A09()
     {
         var second = await Accounts.CreateStaffAsync(
             new StaffAccountInput(Role.Admin, "ADMIN9", "Password1", null), 1);
@@ -300,6 +301,27 @@ public sealed class AccountTests : IClassFixture<AccountTestDatabase>
         Assert.Equal("0911111111", profile.Mobile);
     }
 
+    [Theory]
+    [InlineData("admin", "Admin@123")]
+    [InlineData("kitchen-d1", "KitchenD1@123")]
+    [InlineData("kitchen-bt", "KitchenBT@123")]
+    [InlineData("kitchen-td", "KitchenTD@123")]
+    [InlineData("shipper1", "Shipper1@123")]
+    [InlineData("shipper2", "Shipper2@123")]
+    [InlineData("0912345678", "Local@123")]
+    [InlineData("A1234567", "Tourist@123")]
+    public async Task Every_seed_account_can_log_in_with_random_salt_hash_A22(
+        string identifier, string password)
+    {
+        var result = await Login.LoginAsync(identifier, password);
+
+        Assert.True(result.Accepted, result.Error);
+        var hash = (await _db.Users.IgnoreQueryFilters().SingleAsync(u => u.Id == result.UserId)).PasswordHash;
+        Assert.NotEqual(SeedCredential.PendingHash, hash);
+        Assert.False(hash.StartsWith("PBKDF2-SHA256$", StringComparison.Ordinal));
+        Assert.False(await _db.PendingRegistrations.AnyAsync());
+    }
+
     private sealed class TestClock : IClock
     {
         public TestClock(DateTimeOffset utcNow) => UtcNow = utcNow;
@@ -321,6 +343,20 @@ public sealed class AccountTestDatabase : IDisposable
     {
         using var db = CreateContext();
         db.Database.EnsureCreated();
+
+        // A-22: tests use the same random-salt seed finalisation as Program.cs.
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["SeedPasswords:Admin"] = "Admin@123",
+            ["SeedPasswords:Kitchen-D1"] = "KitchenD1@123",
+            ["SeedPasswords:Kitchen-BT"] = "KitchenBT@123",
+            ["SeedPasswords:Kitchen-TD"] = "KitchenTD@123",
+            ["SeedPasswords:Shipper1"] = "Shipper1@123",
+            ["SeedPasswords:Shipper2"] = "Shipper2@123",
+            ["SeedPasswords:Local"] = "Local@123",
+            ["SeedPasswords:Tourist"] = "Tourist@123"
+        }).Build();
+        new SeedUserInitializer(db, new PasswordHasher<User>(), config).SeedAsync().GetAwaiter().GetResult();
     }
 
     public SaigonBiteDbContext CreateContext() =>

@@ -1,0 +1,91 @@
+﻿Test run for D:\work\SE\Final\SaigonBite.Web.Tests\bin\Debug\net8.0\SaigonBite.Web.Tests.dll (.NETCoreApp,Version=v8.0)
+The following Tests are available:
+    SaigonBite.Web.Tests.A09SoftDeleteReportTests.SoftDeletedMenuItemAndCustomer_KeepDetailHistoryAndR1Unchanged
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "0912345679", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "0312345679", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "0512345679", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "0712345679", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "0812345679", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "091234567", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "09123456789", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "0212345679", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Local_mobile_boundaries_BR18(mobile: "09123A5679", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Tourist_passport_boundaries_BR18(passport: "ABC123", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Tourist_passport_boundaries_BR18(passport: "ABC123456", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Tourist_passport_boundaries_BR18(passport: "AB-123", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Tourist_passport_boundaries_BR18(passport: "ABC12", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Tourist_passport_boundaries_BR18(passport: "ABC1234567", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Password_length_boundary_BR18(password: "1234567", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Password_length_boundary_BR18(password: "12345678", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Tourist_email_validation_BR18(email: "not-an-email", accepted: False)
+    SaigonBite.Web.Tests.AccountTests.Tourist_email_validation_BR18(email: "tourist@example.com", accepted: True)
+    SaigonBite.Web.Tests.AccountTests.Tourist_nationality_is_required_BR18
+    SaigonBite.Web.Tests.AccountTests.Duplicate_identifier_across_types_and_case_is_rejected_A09
+    SaigonBite.Web.Tests.AccountTests.User_and_profile_are_created_only_after_verification_BR18_A08
+    SaigonBite.Web.Tests.AccountTests.Equal_passwords_produce_different_random_salt_hashes_BR18
+    SaigonBite.Web.Tests.AccountTests.Wrong_code_does_not_create_a_user_A08
+    SaigonBite.Web.Tests.AccountTests.Expired_code_creates_no_user_A08
+    SaigonBite.Web.Tests.AccountTests.Three_failed_attempts_cancel_the_pending_registration_A08
+    SaigonBite.Web.Tests.AccountTests.Deactivated_user_cannot_log_in_A09
+    SaigonBite.Web.Tests.AccountTests.Newly_registered_user_can_log_in_BR18
+    SaigonBite.Web.Tests.AccountTests.Staff_creation_edit_and_listing_BR18
+    SaigonBite.Web.Tests.AccountTests.Last_active_admin_cannot_be_deactivated_A09
+    SaigonBite.Web.Tests.AccountTests.Self_profile_edit_uses_the_same_BR18_rules
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "admin", password: "Admin@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "kitchen-d1", password: "KitchenD1@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "kitchen-bt", password: "KitchenBT@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "kitchen-td", password: "KitchenTD@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "shipper1", password: "Shipper1@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "shipper2", password: "Shipper2@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "0912345678", password: "Local@123")
+    SaigonBite.Web.Tests.AccountTests.Every_seed_account_can_log_in_with_random_salt_hash_A22(identifier: "A1234567", password: "Tourist@123")
+    SaigonBite.Web.Tests.DemoDataSeederTests.Demo_seed_creates_twelve_orders_and_is_resettable
+    SaigonBite.Web.Tests.HttpSmokeTests.Real_http_steps_and_missing_order_endpoints_are_reported
+    SaigonBite.Web.Tests.OrderServiceTests.Spec_example_saves_205000_with_full_snapshot
+    SaigonBite.Web.Tests.OrderServiceTests.Preview_prices_without_writing_anything
+    SaigonBite.Web.Tests.OrderServiceTests.Hub_at_90_percent_is_rejected_and_saves_nothing
+    SaigonBite.Web.Tests.OrderServiceTests.Hub_load_counts_only_confirmed_and_preparing
+    SaigonBite.Web.Tests.OrderServiceTests.Below_minimum_is_rejected_and_saves_nothing
+    SaigonBite.Web.Tests.OrderServiceTests.Beyond_8_km_is_rejected_and_saves_nothing
+    SaigonBite.Web.Tests.OrderServiceTests.Cod_above_1000000_is_refused_and_saves_nothing
+    SaigonBite.Web.Tests.OrderServiceTests.Tourist_paying_with_momo_is_refused_and_saves_nothing
+    SaigonBite.Web.Tests.OrderServiceTests.Failed_payment_saves_no_order_lines_payment_or_history
+    SaigonBite.Web.Tests.OrderServiceTests.Rain_flag_adds_10000_and_is_snapshotted
+    SaigonBite.Web.Tests.OrderServiceTests.Two_vouchers_are_not_accepted
+    SaigonBite.Web.Tests.OrderServiceTests.Unknown_voucher_is_ignored_with_a_note
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-01", from: Placed, to: Preparing, actorUserId: 2, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-02", from: Placed, to: Ready, actorUserId: 2, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-03", from: Confirmed, to: Placed, actorUserId: 2, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-04", from: Preparing, to: Cancelled, actorUserId: 7, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-05", from: Delivered, to: Cancelled, actorUserId: 1, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-06", from: Cancelled, to: Confirmed, actorUserId: 2, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-07", from: OutForDelivery, to: Cancelled, actorUserId: 1, cod: False, shipperAssigned: True, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-08", from: Ready, to: OutForDelivery, actorUserId: 5, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-09", from: OutForDelivery, to: Delivered, actorUserId: 5, cod: True, shipperAssigned: True, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-10", from: Placed, to: Confirmed, actorUserId: 7, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-11", from: Placed, to: Confirmed, actorUserId: 3, cod: False, shipperAssigned: False, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Every_invalid_transition_S01_to_S12_writes_nothing(id: "S-12", from: Failed, to: Delivered, actorUserId: 5, cod: False, shipperAssigned: True, reason: "x")
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Kitchen_of_another_hub_and_customer_cannot_confirm
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Kitchen_rejection_without_a_reason_is_refused
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Edit_after_Confirmed_is_refused_BR17
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Edit_uses_the_old_snapshot_after_rain_and_rush_change_BR17
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Cancel_at_Preparing_is_refused_BR16
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Cancel_online_paid_order_refunds_in_full
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Cancel_COD_order_creates_no_refund
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Failed_delivery_of_online_paid_order_refunds_food_total_only_A02
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Third_out_for_delivery_order_for_one_shipper_is_refused_A04
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Reassign_keeps_the_old_assignment_and_non_admin_is_refused
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Unassign_closes_the_current_assignment
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Shipper_cannot_deliver_an_order_assigned_to_another_shipper
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Cod_cannot_be_Delivered_before_ConfirmCash_BR14
+    SaigonBite.Web.Tests.OrderStatusAndDeliveryTests.Shipper_lists_only_their_own_orders
+    SaigonBite.Web.Tests.PickupCapacityTests.Assign_three_Ready_orders_pick_up_two_third_pickup_is_refused_A04
+    SaigonBite.Web.Tests.ReportDateRangeTests.From_equals_to_returns_the_whole_day_A21
+    SaigonBite.Web.Tests.ReportDateRangeTests.Boundary_2359_included_0000_next_day_excluded_A21
+    SaigonBite.Web.Tests.ReportDateRangeTests.Admin_JSON_endpoints_use_the_same_inclusive_to_date_A21
+    SaigonBite.Web.Tests.ReportHandCheckTests.R1_exact_numbers_from_six_hand_checked_orders
+    SaigonBite.Web.Tests.ReportHandCheckTests.R2_exact_numbers_from_six_hand_checked_orders
+    SaigonBite.Web.Tests.SeedCredentialTests.Two_seed_users_with_the_same_password_get_different_hashes_and_can_log_in_A22
+    SaigonBite.Web.Tests.SettingsServiceTests.HeavyRain_Defaults_To_False
+    SaigonBite.Web.Tests.SettingsServiceTests.NonAdmin_Cannot_Set_HeavyRain
+    SaigonBite.Web.Tests.SettingsServiceTests.Admin_Can_Set_HeavyRain_And_It_Persists

@@ -708,7 +708,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "admin",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-admin$MO1NujUgcgRbOaabCQqIe6cQHYLhmGVITJh5MkyGreQ=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 4
                         },
                         new
@@ -718,7 +718,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "kitchen-d1",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen-d1$JAZsZSo16HXKKEZAvm1Wd7ils02wS90ZxOOZfkb4YWY=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 2
                         },
                         new
@@ -728,7 +728,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "kitchen-bt",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen-bt$aJ5mn/pItyttA3qPIQVjPEPq6d8M3Syf9CH63Hx1M9Q=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 2
                         },
                         new
@@ -738,7 +738,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "kitchen-td",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-kitchen-td$rp/4+TVDXKHJ0bSx/3WwCgWRf6X7gDVRQLJo1uLEEaw=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 2
                         },
                         new
@@ -747,7 +747,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "shipper1",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-shipper1$bZkRM65l9vBHh1K/lP5oktpIWRsq0075eV10JCFcbrE=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 3
                         },
                         new
@@ -756,7 +756,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "shipper2",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-shipper2$EhI3lQUOWDi2ak29N5H9rv1YYGTJ4XNareA9lO771cQ=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 3
                         },
                         new
@@ -765,7 +765,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "0912345678",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-local$gV43amXn3D4yShVy+XaxlHNXP4dl6Cu3EwpWdU5jO3c=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 0
                         },
                         new
@@ -774,7 +774,7 @@ namespace SaigonBite.Web.Migrations
                             Identifier = "A1234567",
                             IsActive = true,
                             IsDeleted = false,
-                            PasswordHash = "PBKDF2-SHA256$100000$seed-tourist$gaAA/ldWzQZj8JoieFTLAyF4wECXFNVlxqvJln/1FN8=",
+                            PasswordHash = "!SEED-PENDING!",
                             Role = 1
                         });
                 });

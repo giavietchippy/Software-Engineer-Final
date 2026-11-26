@@ -1,0 +1,87 @@
+﻿Test run for D:\work\SE\Final\SaigonBite.Tests\bin\Debug\net8.0\SaigonBite.Tests.dll (.NETCoreApp,Version=v8.0)
+The following Tests are available:
+    SaigonBite.Tests.HubAndLineRuleTests.T29_only_confirmed_and_preparing_orders_count_towards_load
+    SaigonBite.Tests.HubAndLineRuleTests.Load_boundaries_29_89_90_percent
+    SaigonBite.Tests.HubAndLineRuleTests.Zero_capacity_is_rejected
+    SaigonBite.Tests.HubAndLineRuleTests.Single_line_rules(id: "T-43", quantity: 0, available: True, ownBrand: True, expectedValid: False)
+    SaigonBite.Tests.HubAndLineRuleTests.Single_line_rules(id: "T-44", quantity: 1, available: True, ownBrand: True, expectedValid: True)
+    SaigonBite.Tests.HubAndLineRuleTests.Single_line_rules(id: "T-45", quantity: 20, available: True, ownBrand: True, expectedValid: True)
+    SaigonBite.Tests.HubAndLineRuleTests.Single_line_rules(id: "T-46", quantity: 21, available: True, ownBrand: True, expectedValid: False)
+    SaigonBite.Tests.HubAndLineRuleTests.Single_line_rules(id: "T-51", quantity: 1, available: False, ownBrand: True, expectedValid: False)
+    SaigonBite.Tests.HubAndLineRuleTests.Single_line_rules(id: "T-52", quantity: 1, available: True, ownBrand: False, expectedValid: False)
+    SaigonBite.Tests.HubAndLineRuleTests.Line_count_rules(id: "T-47", lineCount: 0, expectedValid: False)
+    SaigonBite.Tests.HubAndLineRuleTests.Line_count_rules(id: "T-48", lineCount: 1, expectedValid: True)
+    SaigonBite.Tests.HubAndLineRuleTests.Line_count_rules(id: "T-49", lineCount: 30, expectedValid: True)
+    SaigonBite.Tests.HubAndLineRuleTests.Line_count_rules(id: "T-50", lineCount: 31, expectedValid: False)
+    SaigonBite.Tests.OrderStateMachineTests.Valid_happy_path_is_allowed
+    SaigonBite.Tests.OrderStateMachineTests.Cancellations_follow_BR16
+    SaigonBite.Tests.OrderStateMachineTests.Kitchen_rejection_needs_a_reason
+    SaigonBite.Tests.OrderStateMachineTests.Failed_delivery_needs_a_reason
+    SaigonBite.Tests.OrderStateMachineTests.Cod_order_can_be_delivered_once_cash_is_confirmed
+    SaigonBite.Tests.OrderStateMachineTests.S01_Placed_to_Preparing
+    SaigonBite.Tests.OrderStateMachineTests.S02_Placed_to_Ready
+    SaigonBite.Tests.OrderStateMachineTests.S03_Confirmed_to_Placed
+    SaigonBite.Tests.OrderStateMachineTests.S04_Preparing_to_Cancelled_by_customer
+    SaigonBite.Tests.OrderStateMachineTests.S05_Delivered_to_Cancelled
+    SaigonBite.Tests.OrderStateMachineTests.S06_Cancelled_to_Confirmed
+    SaigonBite.Tests.OrderStateMachineTests.S07_OutForDelivery_to_Cancelled
+    SaigonBite.Tests.OrderStateMachineTests.S08_Ready_to_OutForDelivery_without_assigned_shipper
+    SaigonBite.Tests.OrderStateMachineTests.S09_OutForDelivery_to_Delivered_for_COD_without_cash
+    SaigonBite.Tests.OrderStateMachineTests.S10_Placed_to_Confirmed_by_a_customer
+    SaigonBite.Tests.OrderStateMachineTests.S11_Placed_to_Confirmed_by_kitchen_staff_of_another_hub
+    SaigonBite.Tests.OrderStateMachineTests.S12_Failed_to_Delivered
+    SaigonBite.Tests.OrderStateMachineTests.Another_shipper_cannot_take_the_order
+    SaigonBite.Tests.OrderStateMachineTests.Every_transition_outside_section_C_is_rejected_for_every_role
+    SaigonBite.Tests.PaymentTests.T53_local_customer_cannot_use_apple_pay
+    SaigonBite.Tests.PaymentTests.T54_tourist_cannot_use_momo
+    SaigonBite.Tests.PaymentTests.Local_customer_sees_momo_vnpay_and_cod_only
+    SaigonBite.Tests.PaymentTests.Tourist_sees_apple_pay_paypal_and_cod_only
+    SaigonBite.Tests.PaymentTests.T55_cod_allowed_at_exactly_1_000_000
+    SaigonBite.Tests.PaymentTests.T56_cod_allowed_when_total_rounds_down_to_1_000_000
+    SaigonBite.Tests.PaymentTests.T57_cod_refused_when_total_rounds_up_to_1_001_000_but_online_is_allowed
+    SaigonBite.Tests.PaymentTests.Cod_stays_pending_and_online_is_paid
+    SaigonBite.Tests.PaymentTests.New_payment_method_is_added_with_one_class_and_no_existing_class_changes
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-02", s: 50000, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 65000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-03", s: 100000, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-04", s: 100000, load: 0.50, km: 8.0, time: "15:00", rain: False, expected: 151000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-06", s: 100000, load: 0.50, km: 2.0, time: "15:00", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-07", s: 100000, load: 0.50, km: 2.01, time: "15:00", rain: False, expected: 120000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-08", s: 100000, load: 0.50, km: 5.0, time: "15:00", rain: False, expected: 130000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-09", s: 100000, load: 0.50, km: 5.01, time: "15:00", rain: False, expected: 137000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-10", s: 100000, load: 0.50, km: 3.2, time: "15:00", rain: False, expected: 125000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-11", s: 100000, load: 0.50, km: 1.0, time: "10:59", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-12", s: 100000, load: 0.50, km: 1.0, time: "11:00", rain: False, expected: 118000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-13", s: 100000, load: 0.50, km: 1.0, time: "12:59", rain: False, expected: 118000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-14", s: 100000, load: 0.50, km: 1.0, time: "13:00", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-15", s: 100000, load: 0.50, km: 1.0, time: "17:29", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-16", s: 100000, load: 0.50, km: 1.0, time: "17:30", rain: False, expected: 118000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-17", s: 100000, load: 0.50, km: 1.0, time: "19:29", rain: False, expected: 118000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-18", s: 100000, load: 0.50, km: 1.0, time: "19:30", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-19", s: 100000, load: 0.50, km: 1.0, time: "15:00", rain: True, expected: 125000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-20", s: 299999, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 315000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-21", s: 300000, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 300000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-22", s: 300000, load: 0.50, km: 1.0, time: "12:00", rain: True, expected: 310000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-23", s: 100000, load: 0.29, km: 1.0, time: "15:00", rain: False, expected: 105000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-24", s: 100000, load: 0.30, km: 1.0, time: "15:00", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-25", s: 100000, load: 0.00, km: 1.0, time: "15:00", rain: False, expected: 105000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-26", s: 100000, load: 0.89, km: 1.0, time: "15:00", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-39", s: 200000, load: 0.20, km: 3.2, time: "15:00", rain: False, expected: 205000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-41", s: 99499, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 114000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-42", s: 99500, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 115000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-55", s: 1000000, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 1000000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-56", s: 1000499, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 1000000)
+    SaigonBite.Tests.PricingServiceTests.Accepted_orders_have_the_expected_total(id: "T-57", s: 1000500, load: 0.50, km: 1.0, time: "15:00", rain: False, expected: 1001000)
+    SaigonBite.Tests.PricingServiceTests.Orders_breaking_a_rule_are_rejected(id: "T-01", s: 49999, load: 0.50, km: 1.0, expected: BelowMinimum)
+    SaigonBite.Tests.PricingServiceTests.Orders_breaking_a_rule_are_rejected(id: "T-05", s: 100000, load: 0.50, km: 8.01, expected: OutOfCoverage)
+    SaigonBite.Tests.PricingServiceTests.Orders_breaking_a_rule_are_rejected(id: "T-27", s: 100000, load: 0.90, km: 1.0, expected: HubBusy)
+    SaigonBite.Tests.PricingServiceTests.Orders_breaking_a_rule_are_rejected(id: "T-28", s: 100000, load: 1.00, km: 1.0, expected: HubBusy)
+    SaigonBite.Tests.PricingServiceTests.T30_voucher_ignored_when_subtotal_below_minimum
+    SaigonBite.Tests.PricingServiceTests.T31_percent_voucher_at_minimum_subtotal
+    SaigonBite.Tests.PricingServiceTests.T32_percent_voucher_exactly_at_cap
+    SaigonBite.Tests.PricingServiceTests.T33_percent_voucher_above_cap_is_limited
+    SaigonBite.Tests.PricingServiceTests.T34_percent_voucher_is_taken_from_subtotal_after_quiet_kitchen_discount
+    SaigonBite.Tests.PricingServiceTests.T35_fixed_voucher_never_exceeds_subtotal_minus_quiet_discount
+    SaigonBite.Tests.PricingServiceTests.T36_expired_voucher_is_ignored
+    SaigonBite.Tests.PricingServiceTests.T37_inactive_voucher_is_ignored
+    SaigonBite.Tests.PricingServiceTests.T39_worked_example_breakdown
+    SaigonBite.Tests.PricingServiceTests.T40_all_factors_together_follow_the_calculation_order

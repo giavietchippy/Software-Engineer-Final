@@ -8,7 +8,7 @@ using SaigonBite.Web.Services;
 namespace SaigonBite.Web.Tests;
 
 /// <summary>
-/// Step D service tests (BR12-BR17, A-06/A-11/A-12/A-17). Each test uses a throwaway LocalDB database.
+/// Step D service tests (BR12-BR17, A-06/A-07/A-11/A-12). Each test uses a throwaway LocalDB database.
 /// </summary>
 public sealed class OrderServiceTests : IDisposable
 {

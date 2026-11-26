@@ -20,7 +20,7 @@ public sealed record AccountResult(bool Accepted, int? UserId, string? Error)
 }
 
 /// <summary>
-/// BR18/A-16/A-17: Admin staff management and self-service profile edits. Accounts are never
+/// BR18/A-09: Admin staff management and self-service profile edits. Accounts are never
 /// hard-deleted; deactivation sets IsActive=false and IsDeleted=true and keeps order history intact.
 /// </summary>
 public sealed class AccountManagementService
@@ -96,7 +96,7 @@ public sealed class AccountManagementService
             return OperationResult.Fail("The last active Admin cannot be deactivated.");
 
         user.IsActive = false;
-        user.IsDeleted = true; // A-17: soft delete, never a hard delete
+        user.IsDeleted = true; // A-09: soft delete, never a hard delete
         await _db.SaveChangesAsync();
         return OperationResult.Ok();
     }
@@ -109,7 +109,7 @@ public sealed class AccountManagementService
         if (user is null) return OperationResult.Fail("User not found.");
 
         user.IsDeleted = false;
-        user.IsActive = true; // A-17: reactivation restores both flags
+        user.IsActive = true; // A-09: reactivation restores both flags
         await _db.SaveChangesAsync();
         return OperationResult.Ok();
     }
@@ -149,7 +149,7 @@ public sealed class AccountManagementService
         if (identifier.Length == 0)
             return OperationResult.Fail("Identifier is required (BR18).");
         if (await AccountValidation.IdentifierTakenAsync(_db, identifier, userId))
-            return OperationResult.Fail("This identifier is already registered (BR18/A-16).");
+            return OperationResult.Fail("This identifier is already registered (BR18/A-09).");
         if (!string.IsNullOrEmpty(input.Password) && !AccountValidation.IsPassword(input.Password))
             return OperationResult.Fail("Password must be at least 8 characters (BR18).");
 
@@ -202,7 +202,7 @@ public sealed class AccountManagementService
         }
         if (await AccountValidation.IdentifierTakenAsync(
                 _db, AccountValidation.Normalize(input.Identifier), excludeUserId))
-            return "This identifier is already registered (BR18/A-16).";
+            return "This identifier is already registered (BR18/A-09).";
         return null;
     }
 }

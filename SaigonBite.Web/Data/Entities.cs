@@ -4,6 +4,15 @@ using SaigonBite.Core.Pricing;
 
 namespace SaigonBite.Web.Data;
 
+/// <summary>
+/// A-22: EF HasData rows only fix the seed identities. Password hashes are generated at startup
+/// by SeedUserInitializer with ASP.NET Core PasswordHasher&lt;User&gt; (random salt), never here.
+/// </summary>
+public static class SeedCredential
+{
+    public const string PendingHash = "!SEED-PENDING!";
+}
+
 // BR18: one Users table with Role + one profile table per customer type.
 public class User
 {
@@ -189,7 +198,7 @@ public class ShipperAssignment
     public DateTime? UnassignedAt { get; set; } // null = current assignment (A-01)
 }
 
-// A-08/A-19: staged registration. No User/profile row exists until the simulated code is verified.
+// A-08: staged registration. No User/profile row exists until the simulated code is verified.
 public class PendingRegistration
 {
     public int Id { get; set; }

@@ -57,9 +57,21 @@ dotnet ef database update --project SaigonBite.Web --startup-project SaigonBite.
 | `0912345678` | Local | – | `Local@123` |
 | `A1234567` | Tourist | – | `Tourist@123` |
 
-Seed passwords are at least 8 characters (BR18) and stored only as deterministic PBKDF2 hashes so
-`HasData` stays stable across migrations. `SeedPasswordHasher` is **seed-only**; real registration must
-use ASP.NET Core `PasswordHasher<TUser>` with a fresh random salt.
+Seed passwords are at least 8 characters (BR18). `HasData` only fixes the seed identities with a
+`!SEED-PENDING!` placeholder; `SeedUserInitializer` runs on **every** startup (Development, Staging and
+Production) and writes real random-salt ASP.NET Core `PasswordHasher<User>` hashes. No deterministic
+`PBKDF2-SHA256$` hash or dev-only login branch remains.
+
+Passwords are read from `SeedPasswords:<key>` in `appsettings*.json` and can be overridden by
+`SAIGONBITE_SEED_<KEY>_PASSWORD` environment variables (keys: `Admin`, `Kitchen-D1`, `Kitchen-BT`,
+`Kitchen-TD`, `Shipper1`, `Shipper2`, `Local`, `Tourist`). The dev defaults are the passwords in the
+table above; override them in Production. Example:
+
+```
+$env:SAIGONBITE_SEED_ADMIN_PASSWORD = 'ProdAdmin!2026'
+$env:ASPNETCORE_ENVIRONMENT = 'Production'
+dotnet run --project SaigonBite.Web
+```
 
 Other seed data: 3 hubs (capacity 10 each), one kitchen staff per hub, two shippers with no hub,
 vouchers `P10` and `F60` (valid), `EXPIRED20` (expired), `INACTIVE50` (inactive), and 6 menu items
@@ -73,9 +85,10 @@ dotnet test SaigonBite.sln
 ```
 
 `SaigonBite.Tests` holds the 85 unchanged Core rule tests (`T-xx`/`S-xx`).
-`SaigonBite.Web.Tests` holds 76 tests: the Data-layer test that proves soft-deleting a user/menu item
+`SaigonBite.Web.Tests` holds 88 tests: the Data-layer test that proves soft-deleting a user/menu item
 does not change order detail, status history or R1 revenue (A-09), plus Steps D–H services. Each suite
-uses throwaway LocalDB databases; `AccountTests` shares one and resets it per case to avoid LocalDB timeouts.
+uses throwaway LocalDB databases; `AccountTests` shares one and resets it per case. `xunit.runner.json`
+runs the Web cases serially because this machine's LocalDB times out under parallel database creation.
 
 ## Step D service layer (no controllers or views yet)
 
@@ -112,16 +125,16 @@ to keep the stored figures consistent, but no second gateway charge or partial r
 `RegistrationService` validates BR18 by role, hashes with ASP.NET Core `PasswordHasher<User>` (random
 salt, never `SeedPasswordHasher`) and stages the row in `PendingRegistrations`. The 6-digit code is
 returned in `RegistrationResult.Code` and shown on the Verify page (A-08); it lasts 5 minutes and three
-wrong attempts cancel the row (A-19). A User/profile is created only after a successful verification,
+wrong attempts cancel the row (A-08). A User/profile is created only after a successful verification,
 inside one transaction; failure leaves `Users` untouched. Identifiers are trimmed, upper-cased and unique
-across every user and every active pending row (A-16).
+across every user and every active pending row (A-09).
 
 `AccountManagementService` lets an active Admin create/edit/list KitchenStaff (with hub), Shipper (no
-hub) and Admin accounts, and deactivate/reactivate via soft delete (A-17). The last active Admin cannot
+hub) and Admin accounts, and deactivate/reactivate via soft delete (A-09). The last active Admin cannot
 be deactivated. Self-profile edits reuse the same BR18 checks; staff have no extra profile fields (A-23).
 
-`LoginService` reads the identifier from the database, refuses deactivated users and verifies both new
-random-salt hashes and the deterministic DEV seed hashes (A-22). Cookie auth issues `NameIdentifier`,
+`LoginService` reads the identifier from the database, refuses deactivated users and verifies only
+random-salt hashes finalised at startup by `SeedUserInitializer` (A-22). Cookie auth issues `NameIdentifier`,
 `Name` and `Role` claims; policies are `Customer` (Local **or** Tourist), `KitchenStaff`, `Shipper` and
 `Admin`. Routes: `/Account/Login`, `/Account/Register`, `/Account/Verify`, `/Account/Profile`,
 `/Admin/Accounts` (Admin only). Rejected transitions still write nothing; no business rules live in
@@ -142,7 +155,8 @@ hand-checkable totals.
 
 The Admin dashboard at `/Admin/Dashboard` is intentionally small: two Chart.js bar charts and a load
 table, fed by JSON endpoints `RevenueByCategory`, `RevenueByMethod` and `CurrentHubLoad`. The date filter
-is `[from, to)` in Vietnam-local dates (A-21); Chart.js comes from a public CDN (A-24).
+is an inclusive Vietnam-local date range `[from 00:00, to + 1 day 00:00)` (A-21); Chart.js 4.4.1 is
+vendored locally, so the dashboard works offline (A-24).
 
 Demo data is CLI-only, never a public endpoint:
 
@@ -155,17 +169,20 @@ It creates 12 orders covering all eight states, both customer groups, all five p
 shippers (A-20). Rows are tagged with a `DEMO-` address prefix so reset deletes only demo rows; without
 `--reset-demo` a second call is a no-op. Fixture rows are written directly to show every state (A-26).
 
-## NEW assumptions for the Ambiguity Log
+## Real HTTP smoke check
 
-| ID | One-line assumption | Where used |
-|---|---|---|
-| A-08 | The verification code is a simulated 6-digit value shown in the UI instead of SMS/e-mail; valid 5 minutes, 3 wrong attempts cancel. | `PendingRegistration`, `RegistrationService`, `Views/Account/Verify.cshtml` |
-| A-16 | Identifier uniqueness is case-insensitive across all users (including soft-deleted) and all active pending registrations; cancelled rows are kept. | `AccountValidation`, `RegistrationService`, `AccountManagementService`, `SaigonBiteDbContext` |
-| A-17 | Deactivation is a soft delete (`IsActive=false`, `IsDeleted=true`), order history is kept, and the last active Admin cannot be deactivated. | `AccountManagementService`, `LoginService` |
-| A-19 | Expired or thrice-failed pending registrations are cancelled; a verified pending row is deleted after the User/profile is created. | `RegistrationService`, `PendingRegistration` |
-| A-20 | Demo data is dev-only and CLI-driven (`--seed-demo` / `--reset-demo`), identified by a `DEMO-` address prefix; there is no public seeding endpoint. | `DemoDataSeeder`, `Program.cs`, `DemoDataSeederTests` |
-| A-21 | Dashboard date filters are `[from, to)` Vietnam-local dates parsed from HTML date inputs. | `AdminController.Range`, `Views/Admin/Dashboard.cshtml` |
-| A-22 | Deterministic `PBKDF2-SHA256$` seed hashes remain accepted for DEV logins only; all new passwords use ASP.NET Core `PasswordHasher<User>` with a random salt. | `LoginService`, `SeedPasswordHasher`, `RegistrationService` |
-| A-23 | Staff accounts have no extra BR18 profile fields; only the identifier (and KitchenStaff hub) can be edited. | `AccountManagementService.UpdateOwnProfileAsync` |
-| A-24 | Chart.js is loaded from a public CDN, so the minimal Admin dashboard needs internet access in the demo. | `Views/Admin/Dashboard.cshtml` |
-| A-26 | Demo fixture rows are written directly, bypassing `OrderStateMachine`, so all eight statuses are visible immediately. | `DemoDataSeeder` |
+`HttpSmokeTests` drives the MVC pipeline with `WebApplicationFactory` (real antiforgery token and
+cookie auth) against a throwaway LocalDB database; raw `--list-tests` inventories are in
+`docs/evidence/`. Verified over HTTP: Local and Admin login, role denial, dashboard HTML and all three
+JSON endpoints. Two gaps are reported rather than hidden: there is no HTTP endpoint for COD order
+placement, kitchen confirm/ready, admin assignment or shipper pickup/cash/delivered (all return 404 —
+those flows are service-layer only), and TestHost 8 on this machine's .NET 10 runtime returns HTTP 500
+for MVC `JsonResult` (`PipeWriter.UnflushedBytes`); the same endpoints return HTTP 200 over real
+Kestrel, so no application code was changed to work around the harness.
+
+## Ambiguity log
+
+The single reconciled assumption table lives in [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md).
+Part 1 IDs `A-01`–`A-14` keep their original meanings; new decisions are marked
+`NEW SPEC ASSUMPTION` or `IMPLEMENTATION NOTE`, and retired aliases (`A-16`, `A-17`, `A-19`)
+are recorded there so no ID is reused.
