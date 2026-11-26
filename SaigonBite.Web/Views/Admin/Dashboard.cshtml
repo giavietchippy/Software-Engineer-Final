@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Admin dashboard";
 }
-@* A-24: Chart.js 4.4.1 is vendored under wwwroot/lib, so the dashboard works offline. *@
+@* N-03: Chart.js 4.4.1 is vendored under wwwroot/lib, so the dashboard works offline. *@
 <h1>Admin dashboard (FR-R3)</h1>
 
 <div class="row mb-3 g-2">
@@ -37,7 +37,7 @@
             const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
             const today = new Date();
             document.getElementById('from').value = iso(new Date(today.getTime() - 30 * day));
-            document.getElementById('to').value = iso(today); // A-21: inclusive 'to' date
+            document.getElementById('to').value = iso(today); // A-16: inclusive 'to' date
 
             let categoryChart = null, methodChart = null;
             const query = () => '?from=' + encodeURIComponent(document.getElementById('from').value)

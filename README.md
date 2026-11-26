@@ -58,14 +58,16 @@ dotnet ef database update --project SaigonBite.Web --startup-project SaigonBite.
 | `A1234567` | Tourist | – | `Tourist@123` |
 
 Seed passwords are at least 8 characters (BR18). `HasData` only fixes the seed identities with a
-`!SEED-PENDING!` placeholder; `SeedUserInitializer` runs on **every** startup (Development, Staging and
-Production) and writes real random-salt ASP.NET Core `PasswordHasher<User>` hashes. No deterministic
-`PBKDF2-SHA256$` hash or dev-only login branch remains.
+`!SEED-PENDING!` placeholder; `SeedUserInitializer` runs on **every** startup and writes real
+random-salt ASP.NET Core `PasswordHasher<User>` hashes. No deterministic `PBKDF2-SHA256$` hash or
+dev-only login branch remains.
 
-Passwords are read from `SeedPasswords:<key>` in `appsettings*.json` and can be overridden by
-`SAIGONBITE_SEED_<KEY>_PASSWORD` environment variables (keys: `Admin`, `Kitchen-D1`, `Kitchen-BT`,
-`Kitchen-TD`, `Shipper1`, `Shipper2`, `Local`, `Tourist`). The dev defaults are the passwords in the
-table above; override them in Production. Example:
+Outside Production, passwords are read from `SeedPasswords:<key>` in `appsettings*.json`, overridden
+by `SAIGONBITE_SEED_<KEY>_PASSWORD` environment variables, falling back to the dev defaults above.
+**In Production the dev defaults and `appsettings` values are ignored**: every account requires its
+`SAIGONBITE_SEED_<KEY>_PASSWORD` variable (keys: `Admin`, `Kitchen-D1`, `Kitchen-BT`, `Kitchen-TD`,
+`Shipper1`, `Shipper2`, `Local`, `Tourist`). A missing variable logs a warning and skips that account
+instead of creating it with a documented password. Set all eight before starting in Production. Example:
 
 ```
 $env:SAIGONBITE_SEED_ADMIN_PASSWORD = 'ProdAdmin!2026'
@@ -131,10 +133,10 @@ across every user and every active pending row (A-09).
 
 `AccountManagementService` lets an active Admin create/edit/list KitchenStaff (with hub), Shipper (no
 hub) and Admin accounts, and deactivate/reactivate via soft delete (A-09). The last active Admin cannot
-be deactivated. Self-profile edits reuse the same BR18 checks; staff have no extra profile fields (A-23).
+be deactivated. Self-profile edits reuse the same BR18 checks; staff have no extra profile fields (A-17).
 
 `LoginService` reads the identifier from the database, refuses deactivated users and verifies only
-random-salt hashes finalised at startup by `SeedUserInitializer` (A-22). Cookie auth issues `NameIdentifier`,
+random-salt hashes finalised at startup by `SeedUserInitializer` (N-02). Cookie auth issues `NameIdentifier`,
 `Name` and `Role` claims; policies are `Customer` (Local **or** Tourist), `KitchenStaff`, `Shipper` and
 `Admin`. Routes: `/Account/Login`, `/Account/Register`, `/Account/Verify`, `/Account/Profile`,
 `/Admin/Accounts` (Admin only). Rejected transitions still write nothing; no business rules live in
@@ -147,7 +149,7 @@ Ready orders can be assigned, but only two can be picked up; the third stays Rea
 ## Step H: reports, minimal dashboard and demo data
 
 `ReportService.GetRevenueAsync(from, to)` returns R1 by category and payment method from stored
-snapshots, excluding Cancelled (A-13) and Failed (A-14). `GetHubPerformanceAsync` returns R2: orders
+snapshots, excluding Cancelled and Failed orders (A-13). `GetHubPerformanceAsync` returns R2: orders
 handled, average `Confirmed → Ready` from `OrderStatusHistory` (null/N/A when there is no such row),
 current load from live statuses and the count of orders with `QuietDiscount > 0`. Both ignore query
 filters so soft deletes do not rewrite history (A-09). `ReportHandCheckTests` uses six fixed orders with
@@ -155,8 +157,8 @@ hand-checkable totals.
 
 The Admin dashboard at `/Admin/Dashboard` is intentionally small: two Chart.js bar charts and a load
 table, fed by JSON endpoints `RevenueByCategory`, `RevenueByMethod` and `CurrentHubLoad`. The date filter
-is an inclusive Vietnam-local date range `[from 00:00, to + 1 day 00:00)` (A-21); Chart.js 4.4.1 is
-vendored locally, so the dashboard works offline (A-24).
+is an inclusive Vietnam-local date range `[from 00:00, to + 1 day 00:00)` (A-16); Chart.js 4.4.1 is
+vendored locally, so the dashboard works offline (N-03).
 
 Demo data is CLI-only, never a public endpoint:
 
@@ -166,14 +168,16 @@ dotnet run --project SaigonBite.Web -- --seed-demo --reset-demo
 ```
 
 It creates 12 orders covering all eight states, both customer groups, all five payment methods and two
-shippers (A-20). Rows are tagged with a `DEMO-` address prefix so reset deletes only demo rows; without
-`--reset-demo` a second call is a no-op. Fixture rows are written directly to show every state (A-26).
+shippers (N-01). Rows are tagged with a `DEMO-` address prefix so reset deletes only demo rows; without
+`--reset-demo` a second call is a no-op. Fixture rows are written directly to show every state (N-05).
 
 ## Real HTTP smoke check
 
 `HttpSmokeTests` drives the MVC pipeline with `WebApplicationFactory` (real antiforgery token and
 cookie auth) against a throwaway LocalDB database; raw `--list-tests` inventories are in
-`docs/evidence/`. Verified over HTTP: Local and Admin login, role denial, dashboard HTML and all three
+`docs/evidence/`. `Real_http_steps_and_missing_order_endpoints_are_reported` is currently skipped
+(`Skip = "enabled after the web layer is built"`) and will be replaced by a real end-to-end test
+once the order-flow endpoints exist. Verified over HTTP: Local and Admin login, role denial, dashboard HTML and all three
 JSON endpoints. Two gaps are reported rather than hidden: there is no HTTP endpoint for COD order
 placement, kitchen confirm/ready, admin assignment or shipper pickup/cash/delivered (all return 404 —
 those flows are service-layer only), and TestHost 8 on this machine's .NET 10 runtime returns HTTP 500
@@ -183,6 +187,6 @@ Kestrel, so no application code was changed to work around the harness.
 ## Ambiguity log
 
 The single reconciled assumption table lives in [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md).
-Part 1 IDs `A-01`–`A-14` keep their original meanings; new decisions are marked
-`NEW SPEC ASSUMPTION` or `IMPLEMENTATION NOTE`, and retired aliases (`A-16`, `A-17`, `A-19`)
-are recorded there so no ID is reused.
+IDs `A-01`–`A-17` are spec assumptions; implementation details use `N-01`–`N-06`.
+Retired labels `A-16`, `A-17` and `A-19` were merged into `A-09`, `A-07` and `A-08`
+and are not reused; only a short history note remains.

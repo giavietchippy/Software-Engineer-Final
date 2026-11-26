@@ -1,6 +1,6 @@
 namespace SaigonBite.Web.Services;
 
-/// <summary>A-27/BR17: services never read the system clock; callers inject time.</summary>
+/// <summary>N-06/BR17: services never read the system clock; callers inject time.</summary>
 public interface IClock
 {
     DateTimeOffset UtcNow { get; }

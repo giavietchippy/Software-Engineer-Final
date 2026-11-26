@@ -227,7 +227,7 @@ public class SaigonBiteDbContext : DbContext
                 ValidTo = new DateOnly(2026, 12, 31), IsActive = false
             });
 
-        // A-22: HasData fixes identities only; SeedUserInitializer sets random-salt hashes at startup.
+        // N-02: HasData fixes identities only; SeedUserInitializer sets random-salt hashes at startup.
         // Seed passwords come from configuration/environment variables and are at least 8 chars (BR18).
         modelBuilder.Entity<User>().HasData(
             new User { Id = 1, Role = Role.Admin, Identifier = "admin", PasswordHash = SeedCredential.PendingHash, IsActive = true },

@@ -12,12 +12,12 @@ using SaigonBite.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container. A-25: AutoValidateAntiforgeryToken covers EVERY POST action,
+// Add services to the container. N-04: AutoValidateAntiforgeryToken covers EVERY POST action,
 // including future rain-flag/cancel/status/assignment/cash-confirmation actions.
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 
-// A-25: hardened cookie auth + per-role policies (BR18). Customer = Local OR Tourist.
+// N-04: hardened cookie auth + per-role policies (BR18). Customer = Local OR Tourist.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -54,7 +54,7 @@ builder.Services.AddSingleton<PaymentContext>();                       // BR13: 
 builder.Services.AddScoped<SettingsService>();                        // FR-D14, BR5
 builder.Services.AddScoped<OrderReadService>();                       // A-09: detail/history ignore soft-delete filters
 builder.Services.AddScoped<ReportService>();                          // R1, R2
-builder.Services.AddSingleton<IClock, SystemClock>();                  // A-27: no clock reads inside services
+builder.Services.AddSingleton<IClock, SystemClock>();                  // N-06: no clock reads inside services
 builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: deterministic demo distances
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
 builder.Services.AddScoped<OrderStatusService>();                      // BR14-BR17, A-02/A-12/A-15
@@ -62,13 +62,13 @@ builder.Services.AddScoped<ShipperAssignmentService>();                // A-01/A
 builder.Services.AddSingleton<PasswordHasher<User>>();                  // BR18: random-salt hashing
 builder.Services.AddScoped<RegistrationService>();                     // BR18, A-08
 builder.Services.AddScoped<AccountManagementService>();                // BR18, A-09
-builder.Services.AddScoped<LoginService>();                            // BR18, A-09/A-22
-builder.Services.AddScoped<DemoDataSeeder>();                          // A-20: CLI-only dev seed
-builder.Services.AddScoped<SeedUserInitializer>();                      // A-22: real hash seeds in ALL environments
+builder.Services.AddScoped<LoginService>();                            // BR18, A-09/N-02
+builder.Services.AddScoped<DemoDataSeeder>();                          // N-01: CLI-only dev seed
+builder.Services.AddScoped<SeedUserInitializer>();                      // N-02: real hashes; env-only passwords in Production
 
 var app = builder.Build();
 
-// A-22: finalise seed passwords with random-salt hashes in Development, Staging AND Production.
+// N-02: finalise seed hashes; in Production only SAIGONBITE_SEED_*_PASSWORD is used (missing = skip + warn).
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<SeedUserInitializer>().SeedAsync();
@@ -93,7 +93,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// A-20: dev demo data is CLI-only, never a public endpoint.
+// N-01: dev demo data is CLI-only, never a public endpoint.
 if (args.Any(a => string.Equals(a, "--seed-demo", StringComparison.OrdinalIgnoreCase)))
 {
     using var scope = app.Services.CreateScope();

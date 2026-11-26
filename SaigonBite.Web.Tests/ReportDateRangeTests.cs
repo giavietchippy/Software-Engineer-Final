@@ -9,7 +9,7 @@ using SaigonBite.Web.Services;
 namespace SaigonBite.Web.Tests;
 
 /// <summary>
-/// A-21: 'to' is an inclusive Vietnam-local DATE. from == to returns the whole day:
+/// A-16: 'to' is an inclusive Vietnam-local DATE. from == to returns the whole day:
 /// [from 00:00, to + 1 day 00:00). These are separate fixtures so the R1/R2 hand-check totals
 /// in ReportHandCheckTests stay unchanged.
 /// </summary>
@@ -47,7 +47,7 @@ public sealed class ReportDateRangeTests : IDisposable
         var order = new Order
         {
             CustomerId = 7, HubId = 1, Status = OrderStatus.Delivered,
-            DeliveryAddress = "A-21 inclusive date test", PlacedAt = placedAt,
+            DeliveryAddress = "A-16 inclusive date test", PlacedAt = placedAt,
             SnapshotHubLoad = 0.2m, SnapshotHeavyRain = false, SnapshotDistanceKm = 1.5m,
             Subtotal = total, QuietDiscount = 0m, VoucherDiscount = 0m,
             FoodTotal = total, DeliveryFee = 0m, RushSurcharge = 0m, RainSurcharge = 0m,
@@ -70,7 +70,7 @@ public sealed class ReportDateRangeTests : IDisposable
     }
 
     [Fact]
-    public async Task From_equals_to_returns_the_whole_day_A21()
+    public async Task From_equals_to_returns_the_whole_day_A16()
     {
         await SeedAsync();
         var reports = new ReportService(_db);
@@ -84,7 +84,7 @@ public sealed class ReportDateRangeTests : IDisposable
     }
 
     [Fact]
-    public async Task Boundary_2359_included_0000_next_day_excluded_A21()
+    public async Task Boundary_2359_included_0000_next_day_excluded_A16()
     {
         await SeedAsync();
         var reports = new ReportService(_db);
@@ -100,7 +100,7 @@ public sealed class ReportDateRangeTests : IDisposable
     }
 
     [Fact]
-    public async Task Admin_JSON_endpoints_use_the_same_inclusive_to_date_A21()
+    public async Task Admin_JSON_endpoints_use_the_same_inclusive_to_date_A16()
     {
         await SeedAsync();
         var reports = new ReportService(_db);

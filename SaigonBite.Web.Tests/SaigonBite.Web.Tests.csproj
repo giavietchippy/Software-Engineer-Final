@@ -5,8 +5,6 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <!-- This machine has only the ASP.NET Core 10 runtime; testhost needs to roll forward from net8.0. -->
-    <RollForward>Major</RollForward>
   </PropertyGroup>
   <ItemGroup>
     <!-- Web project services use ASP.NET Core Identity's PasswordHasher. -->

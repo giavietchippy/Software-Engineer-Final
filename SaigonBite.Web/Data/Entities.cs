@@ -5,7 +5,7 @@ using SaigonBite.Core.Pricing;
 namespace SaigonBite.Web.Data;
 
 /// <summary>
-/// A-22: EF HasData rows only fix the seed identities. Password hashes are generated at startup
+/// N-02: EF HasData rows only fix the seed identities. Password hashes are generated at startup
 /// by SeedUserInitializer with ASP.NET Core PasswordHasher&lt;User&gt; (random salt), never here.
 /// </summary>
 public static class SeedCredential

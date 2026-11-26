@@ -17,7 +17,7 @@ public sealed class ReportService
 
     public async Task<R1Report> GetRevenueAsync(DateTime from, DateTime to)
     {
-        // A-21: both arguments are Vietnam-local DATES. 'to' is inclusive, so query the half-open
+        // A-16: both arguments are Vietnam-local DATES. 'to' is inclusive, so query the half-open
         // range [from 00:00, to + 1 day 00:00). from == to therefore returns the whole 'to' day.
         var start = from.Date;
         var exclusiveEnd = to.Date.AddDays(1);

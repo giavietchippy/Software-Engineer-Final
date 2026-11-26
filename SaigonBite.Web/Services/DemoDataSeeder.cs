@@ -7,9 +7,9 @@ using SaigonBite.Web.Data;
 namespace SaigonBite.Web.Services;
 
 /// <summary>
-/// A-20/A-26: dev-only demo data. Invoked from Program.cs with --seed-demo / --reset-demo; there is
+/// N-01/N-05: dev-only demo data. Invoked from Program.cs with --seed-demo / --reset-demo; there is
 /// no public endpoint. Demo orders are tagged by DeliveryAddress so reset removes only these rows.
-/// A-26: fixture rows are written directly (not through OrderStateMachine) to present all states.
+/// N-05: fixture rows are written directly (not through OrderStateMachine) to present all states.
 /// </summary>
 public sealed class DemoDataSeeder
 {

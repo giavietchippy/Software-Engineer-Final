@@ -207,7 +207,7 @@ public sealed class OrderStatusService
                 return OperationResult.Fail(refundResult.Message ?? "The refund was declined.");
         }
 
-        var changedAt = VietnamTime.FromUtc(_clock.UtcNow); // A-27: injected clock, UTC+7
+        var changedAt = VietnamTime.FromUtc(_clock.UtcNow); // N-06: injected clock, UTC+7
         await using var transaction = await _db.Database.BeginTransactionAsync();
         try
         {

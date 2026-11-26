@@ -169,7 +169,7 @@ public sealed class AccountManagementService
             tourist.Nationality = input.Nationality.Trim();
             tourist.Email = input.Email.Trim();
         }
-        // A-23: staff profiles have no extra BR18 fields; only the identifier can change.
+        // A-17: staff profiles have no extra BR18 fields; only the identifier can change.
 
         await _db.SaveChangesAsync();
         return OperationResult.Ok();

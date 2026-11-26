@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SaigonBite.Core;
 using SaigonBite.Web.Data;
 using SaigonBite.Web.Services;
@@ -8,7 +12,7 @@ using SaigonBite.Web.Services;
 namespace SaigonBite.Web.Tests;
 
 /// <summary>
-/// BR18/A-08/A-09/A-22: field boundaries, staged registration, random-salt hashes,
+/// BR18/A-08/A-09/N-02: field boundaries, staged registration, random-salt hashes,
 /// deactivation and staff management. Every rejection leaves the user table untouched.
 /// </summary>
 public sealed class AccountTests : IClassFixture<AccountTestDatabase>
@@ -224,7 +228,7 @@ public sealed class AccountTests : IClassFixture<AccountTestDatabase>
     [Fact]
     public async Task Deactivated_user_cannot_log_in_A09()
     {
-        var ok = await Login.LoginAsync("0912345678", "Local@123"); // dev seed random-salt hash (A-22)
+        var ok = await Login.LoginAsync("0912345678", "Local@123"); // dev seed random-salt hash (N-02)
         Assert.True(ok.Accepted, ok.Error);
 
         Assert.True((await Accounts.DeactivateAsync(7, 1)).Accepted);
@@ -310,7 +314,7 @@ public sealed class AccountTests : IClassFixture<AccountTestDatabase>
     [InlineData("shipper2", "Shipper2@123")]
     [InlineData("0912345678", "Local@123")]
     [InlineData("A1234567", "Tourist@123")]
-    public async Task Every_seed_account_can_log_in_with_random_salt_hash_A22(
+    public async Task Every_seed_account_can_log_in_with_random_salt_hash_N02(
         string identifier, string password)
     {
         var result = await Login.LoginAsync(identifier, password);
@@ -344,7 +348,7 @@ public sealed class AccountTestDatabase : IDisposable
         using var db = CreateContext();
         db.Database.EnsureCreated();
 
-        // A-22: tests use the same random-salt seed finalisation as Program.cs.
+        // N-02: tests use the same random-salt seed finalisation as Program.cs.
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["SeedPasswords:Admin"] = "Admin@123",
@@ -356,7 +360,9 @@ public sealed class AccountTestDatabase : IDisposable
             ["SeedPasswords:Local"] = "Local@123",
             ["SeedPasswords:Tourist"] = "Tourist@123"
         }).Build();
-        new SeedUserInitializer(db, new PasswordHasher<User>(), config).SeedAsync().GetAwaiter().GetResult();
+        new SeedUserInitializer(db, new PasswordHasher<User>(), config,
+            new DevelopmentEnvironment(), NullLogger<SeedUserInitializer>.Instance)
+            .SeedAsync().GetAwaiter().GetResult();
     }
 
     public SaigonBiteDbContext CreateContext() =>
@@ -402,5 +408,13 @@ public sealed class AccountTestDatabase : IDisposable
     {
         using var db = CreateContext();
         db.Database.EnsureDeleted();
+    }
+
+    private sealed class DevelopmentEnvironment : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Development;
+        public string ApplicationName { get; set; } = "SaigonBite.Web.Tests";
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }

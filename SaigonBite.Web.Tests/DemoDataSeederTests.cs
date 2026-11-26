@@ -5,7 +5,7 @@ using SaigonBite.Web.Services;
 
 namespace SaigonBite.Web.Tests;
 
-/// <summary>A-20: CLI-only demo data covers every state, both customer groups and all payment methods.</summary>
+/// <summary>N-01: CLI-only demo data covers every state, both customer groups and all payment methods.</summary>
 public sealed class DemoDataSeederTests : IDisposable
 {
     private readonly string _connectionString =
