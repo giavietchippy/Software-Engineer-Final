@@ -62,7 +62,7 @@ public sealed record OrderDetailDto(
 public sealed record OrderLineDto(string ItemName, string Category, int Quantity, decimal UnitPrice);
 
 public sealed record OrderHistoryDto(
-    OrderStatus FromStatus,
+    OrderStatus? FromStatus,
     OrderStatus ToStatus,
     DateTime ChangedAt,
     string ActorIdentifier,

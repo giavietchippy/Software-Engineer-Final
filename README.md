@@ -75,3 +75,16 @@ dotnet test SaigonBite.sln
 `SaigonBite.Tests` holds the 85 unchanged Core rule tests (`T-xx`/`S-xx`).
 `SaigonBite.Web.Tests` holds the Data-layer test that proves soft-deleting a user/menu item does not
 change order detail, status history or R1 revenue (A-09). It uses a throwaway LocalDB database.
+
+## Step D service layer (no controllers or views yet)
+
+`OrderService.PreviewPriceAsync` validates lines, reads hub load from the database, the Admin rain flag,
+the injected clock (UTC+7) and the simulated distance, then calls `Core.PricingService` without saving.
+`OrderService.PlaceOrderAsync` pays first and only then writes the Order (Placed), its lines, its Payment
+and the first `null → Placed` history row inside one transaction (A-12). The customer's role is read from
+`Users`, never from the request. One voucher code is allowed; unknown/unusable codes give V = 0 plus a note.
+
+Distances come from the replaceable `DistanceService` (A-06): hub 1 + `District 1` = 3.2 km, while
+`District 7` is 10.5 km (out of coverage). Time comes from `IClock`; `SystemClock` is used in production
+and a fake in tests. `OrderStatusHistories.FromStatus` is nullable since Step D for the initial row
+(migration `20261126031657_MakeHistoryFromStatusNullable`).

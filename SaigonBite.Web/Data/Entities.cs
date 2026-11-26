@@ -154,7 +154,7 @@ public class OrderStatusHistory
     public int Id { get; set; }
     public int OrderId { get; set; }
     public Order Order { get; set; } = null!;
-    public OrderStatus FromStatus { get; set; }
+    public OrderStatus? FromStatus { get; set; } // null for the initial null -> Placed row (BR15)
     public OrderStatus ToStatus { get; set; }
     public int ActorUserId { get; set; }
     public User Actor { get; set; } = null!;

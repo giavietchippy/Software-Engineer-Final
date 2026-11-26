@@ -437,7 +437,7 @@ namespace SaigonBite.Web.Migrations
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("FromStatus")
+                    b.Property<int?>("FromStatus")
                         .HasColumnType("int");
 
                     b.Property<int>("OrderId")

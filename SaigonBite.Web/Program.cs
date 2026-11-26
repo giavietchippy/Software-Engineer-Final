@@ -24,6 +24,9 @@ builder.Services.AddSingleton<PaymentContext>();                       // BR13: 
 builder.Services.AddScoped<SettingsService>();                        // FR-D14, BR5
 builder.Services.AddScoped<OrderReadService>();                       // A-09: detail/history ignore soft-delete filters
 builder.Services.AddScoped<ReportService>();                          // R1, R2
+builder.Services.AddSingleton<IClock, SystemClock>();                  // A-12: no clock reads inside services
+builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: deterministic demo distances
+builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
 
 var app = builder.Build();
 

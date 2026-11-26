@@ -10,7 +10,12 @@ public sealed class SettingsService
     public const string HeavyRainKey = "HeavyRain";
 
     private readonly SaigonBiteDbContext _db;
-    public SettingsService(SaigonBiteDbContext db) => _db = db;
+    private readonly IClock _clock;
+
+    public SettingsService(SaigonBiteDbContext db, IClock clock) { _db = db; _clock = clock; }
+
+    // Kept for the existing data tests; production resolves the IClock constructor.
+    public SettingsService(SaigonBiteDbContext db) : this(db, new SystemClock()) { }
 
     public bool GetHeavyRain() =>
         bool.Parse(_db.SystemSettings.AsNoTracking().Single(s => s.Key == HeavyRainKey).Value);
@@ -24,7 +29,7 @@ public sealed class SettingsService
 
         var setting = await _db.SystemSettings.SingleAsync(s => s.Key == HeavyRainKey);
         setting.Value = value ? "true" : "false";
-        setting.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(7), DateTimeKind.Unspecified); // UTC+7
+        setting.UpdatedAt = VietnamTime.FromUtc(_clock.UtcNow); // UTC+7, injected clock (no clock read here)
         setting.UpdatedByUserId = actorUserId;
         await _db.SaveChangesAsync();
     }
