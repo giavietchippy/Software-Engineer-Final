@@ -207,12 +207,12 @@ public sealed class OrderController : Controller
     }
 
     private PlaceOrderInput ToPlaceInput(CheckoutViewModel m) => new(
-        CurrentUserId(), m.HubId, m.District,
+        CurrentUserId(), m.HubId, m.District ?? string.Empty,
         m.Lines.Where(l => l.Quantity > 0)
             .Select(l => new OrderLineInput(l.MenuItemId, l.Quantity)).ToList(),
         m.PaymentMethod,
         string.IsNullOrWhiteSpace(m.VoucherCode) ? null : new[] { m.VoucherCode },
-        m.DeliveryAddress, m.HotelName, m.RoomNumber);
+        m.DeliveryAddress ?? string.Empty, m.HotelName ?? string.Empty, m.RoomNumber ?? string.Empty);
 
     private List<CartInput> ReadCart()
     {
