@@ -1,0 +1,85 @@
+@model MenuViewModel
+@{
+    ViewData["Title"] = L["MenuTitle"];
+    var itemCount = Model.Brands.Sum(b => b.Items.Count);
+}
+
+<div class="sb-page-head">
+    <div>
+        <h1>@L["MenuTitle"] — @Model.HubName</h1>
+        <p>@L["MenuFor"] <strong>@Model.HubName</strong></p>
+    </div>
+    <a asp-controller="Order" asp-action="Hubs" class="btn btn-outline-secondary">@L["MenuBack"]</a>
+</div>
+
+@if (itemCount == 0)
+{
+    <div class="alert alert-warning" role="alert">@L["MenuEmpty"]</div>
+}
+else
+{
+    <div class="alert alert-info small" role="note">@L["CartMax"]</div>
+    <div class="sb-toolbar">
+        <div class="sb-filters" role="group" aria-label="@L["Category"]">
+            <button type="button" class="sb-chip is-on" data-filter="all" aria-pressed="true">@L["CategoryAll"]</button>
+            @foreach (var cat in Model.Brands.SelectMany(b => b.Items).Select(i => i.Category).Distinct())
+            {
+                <button type="button" class="sb-chip" data-filter="@cat" aria-pressed="false">@L["Category" + cat]</button>
+            }
+        </div>
+        <div class="sb-tools">
+            <input type="search" id="sb-search" class="form-control" placeholder="@L["SearchDish"]" aria-label="@L["SearchDish"]" autocomplete="off" />
+            <select id="sb-sort" class="form-select" aria-label="@L["SortDefault"]">
+                <option value="default">@L["SortDefault"]</option>
+                <option value="asc">@L["SortPriceAsc"]</option>
+                <option value="desc">@L["SortPriceDesc"]</option>
+            </select>
+        </div>
+    </div>
+    <div class="alert alert-secondary small" id="sb-nomatch" role="status" hidden>@L["NoDishMatch"]</div>
+    <form asp-action="Cart" method="post">
+        <input type="hidden" name="hubId" value="@Model.HubId" />
+        @foreach (var brand in Model.Brands.Where(b => b.Items.Count > 0))
+        {
+            <section class="sb-brandblock sb-rise" aria-label="@brand.Name" data-brand-block>
+                <header>
+                    <h2>@brand.Name</h2>
+                    <span class="sb-pill">@brand.Items.Count</span>
+                </header>
+                @foreach (var item in brand.Items)
+                {
+                    <div class="sb-item" data-item-row data-cat="@item.Category" data-name="@item.Name" data-price="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                        <div class="sb-photo" data-img-base="/images/menu/@item.Id" data-img-name="@item.Name">
+                            <partial name="_FoodArt" model="item.Category" />
+                        </div>
+                        <div class="sb-item-info">
+                            <div class="sb-item-name">@item.Name</div>
+                            <div class="sb-item-cat">@L["Category" + item.Category]</div>
+                        </div>
+                        <div class="sb-price">@item.Price.ToString("N0")&nbsp;₫</div>
+                        <div class="sb-stepper">
+                            <button type="button" data-step="-1" aria-label="− @item.Name">−</button>
+                            <input type="number" min="0" max="20" step="1" name="quantities" value="0"
+                                   data-price="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                   inputmode="numeric"
+                                   aria-label="@L["Quantity"] - @item.Name" />
+                            <button type="button" data-step="1" aria-label="+ @item.Name">+</button>
+                        </div>
+                        <input type="hidden" name="itemIds" value="@item.Id" />
+                    </div>
+                }
+            </section>
+        }
+
+        <div class="sb-summarybar" id="sb-summary">
+            <div class="sb-sum">
+                <div><small>@L["Qty"]</small><strong data-sum-count>0</strong></div>
+                <div><small>@L["Subtotal"]</small><strong data-sum-total>0&nbsp;₫</strong></div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-sum-clear>@L["ClearCart"]</button>
+                <button type="submit" class="btn btn-primary" data-sum-go>@L["MenuContinue"]</button>
+            </div>
+        </div>
+    </form>
+}
