@@ -24,6 +24,7 @@ public class SaigonBiteDbContext : DbContext
     public DbSet<ShipperAssignment> ShipperAssignments => Set<ShipperAssignment>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<PendingRegistration> PendingRegistrations => Set<PendingRegistration>();
+    public DbSet<PendingOnlinePayment> PendingOnlinePayments => Set<PendingOnlinePayment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,6 +44,7 @@ public class SaigonBiteDbContext : DbContext
         modelBuilder.Entity<ShipperAssignment>().ToTable("ShipperAssignments");
         modelBuilder.Entity<SystemSetting>().ToTable("SystemSettings");
         modelBuilder.Entity<PendingRegistration>().ToTable("PendingRegistrations");
+        modelBuilder.Entity<PendingOnlinePayment>().ToTable("PendingOnlinePayments");
 
         // Global soft-delete filters. IsActive is NOT filtered: deactivated users stay in history (A-09),
         // and inactive vouchers must still be read to produce the A-11 note (BR9).
@@ -166,6 +168,12 @@ public class SaigonBiteDbContext : DbContext
         {
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.Identifier);
+        });
+
+        modelBuilder.Entity<PendingOnlinePayment>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.TransactionRef).IsUnique();
         });
 
         Seed(modelBuilder);

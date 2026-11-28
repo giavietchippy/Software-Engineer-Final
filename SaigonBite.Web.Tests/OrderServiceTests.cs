@@ -270,6 +270,34 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Allowed_payment_methods_follow_BR13_by_database_role()
+    {
+        var svc = Service();
+        var local = await svc.AllowedPaymentMethodsForCustomerAsync(7, 205_000m);
+        var tourist = await svc.AllowedPaymentMethodsForCustomerAsync(8, 205_000m);
+
+        Assert.Equal(new[] { PaymentMethod.Momo, PaymentMethod.VnPay, PaymentMethod.Cod }, local);
+        Assert.Equal(new[] { PaymentMethod.ApplePay, PaymentMethod.PayPal, PaymentMethod.Cod }, tourist);
+    }
+
+    [Fact]
+    public async Task Allowed_payment_methods_exclude_cod_when_rounded_total_exceeds_1000000()
+    {
+        await AddBusyOrdersAsync(3);
+        var addon = new MenuItem { BrandId = 1, Name = "Test add-on", Category = "Drinks", Price = 10_500m };
+        _db.MenuItems.Add(addon);
+        await _db.SaveChangesAsync();
+
+        var preview = await Service().PreviewPriceAsync(Input(
+            lines: new[] { new OrderLineInput(1, 18), new OrderLineInput(addon.Id, 1) }));
+        Assert.True(preview.Accepted);
+        Assert.Equal(1_001_000m, preview.Breakdown!.Total);
+
+        var methods = await Service().AllowedPaymentMethodsForCustomerAsync(7, preview.Breakdown.Total);
+        Assert.Equal(new[] { PaymentMethod.Momo, PaymentMethod.VnPay }, methods);
+    }
+
+    [Fact]
     public async Task Cod_above_1000000_is_refused_and_saves_nothing()
     {
         await AddBusyOrdersAsync(3); // 30 % load keeps the quiet discount off

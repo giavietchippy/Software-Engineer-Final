@@ -113,6 +113,9 @@ public sealed class OrderController : Controller
         }
 
         var outcome = await _orders.PlaceOrderAsync(ToPlaceInput(model, quote.Km));
+        if (!string.IsNullOrWhiteSpace(outcome.RedirectUrl))
+            return Redirect(outcome.RedirectUrl);
+
         if (!outcome.Accepted)
         {
             var rejected = await BuildCheckoutAsync(model.HubId, model, quote);
@@ -202,7 +205,9 @@ public sealed class OrderController : Controller
         input.DistanceKm = quote.Km;
         input.DistanceTicket = quote.Ticket;
         input.Districts = _orders.Districts;
-        input.IsTourist = CurrentRole() == Role.Tourist;
+        var customerId = CurrentUserId();
+        var customerRole = await _orders.GetCustomerRoleAsync(customerId);
+        input.IsTourist = customerRole == Role.Tourist;
 
         var cart = input.Lines.Count > 0
             ? input.Lines.Select(l => new CartInput { MenuItemId = l.MenuItemId, Quantity = l.Quantity }).ToList()
@@ -232,11 +237,18 @@ public sealed class OrderController : Controller
             input.LineErrors = preview.LineErrors;
         }
 
-        var total = input.Breakdown?.Total
-                    ?? input.Lines.Sum(l => l.UnitPrice * l.Quantity);
-        input.PaymentMethods = _orders.AllowedPaymentMethods(CurrentRole(), total);
-        if (input.PaymentMethods.Count > 0 && !input.PaymentMethods.Contains(input.PaymentMethod))
-            input.PaymentMethod = input.PaymentMethods[0];
+        // BR13/BR14: filter by DB role and the rounded total from Preview (never subtotal-only or cookie role).
+        if (input.Breakdown is { Total: var roundedTotal })
+        {
+            input.PaymentMethods = await _orders.AllowedPaymentMethodsForCustomerAsync(customerId, roundedTotal);
+            if (input.PaymentMethods.Count > 0 && !input.PaymentMethods.Contains(input.PaymentMethod))
+                input.PaymentMethod = input.PaymentMethods[0];
+        }
+        else
+        {
+            input.PaymentMethods = Array.Empty<PaymentMethod>();
+        }
+
         return input;
     }
 
@@ -270,9 +282,4 @@ public sealed class OrderController : Controller
 
     private int CurrentUserId() =>
         int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
-
-    private Role CurrentRole() =>
-        Enum.TryParse<Role>(User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty, out var role)
-            ? role
-            : Role.Local;
 }

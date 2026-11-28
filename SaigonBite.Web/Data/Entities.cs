@@ -213,6 +213,20 @@ public class PendingRegistration
     public DateTime CreatedAt { get; set; }
 }
 
+/// <summary>Live-gateway checkout: order payload staged until the provider confirms payment (A-12).</summary>
+public class PendingOnlinePayment
+{
+    public int Id { get; set; }
+    public string TransactionRef { get; set; } = string.Empty;
+    public PaymentMethod Method { get; set; }
+    public int CustomerId { get; set; }
+    public string PayloadJson { get; set; } = string.Empty;
+    public string? ProviderReference { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public bool Completed { get; set; }
+}
+
 // FR-D14 / BR5: Admin-controlled heavy-rain flag, read at placement and stored in the BR17 snapshot.
 public class SystemSetting
 {

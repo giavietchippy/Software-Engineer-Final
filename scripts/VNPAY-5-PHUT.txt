@@ -1,0 +1,47 @@
+VNPay sandbox — 5 phút (không cần MoMo / ngrok)
+=============================================
+
+Lỗi "Trang bạn tìm kiếm không tồn tại" = URL VNPay sai HOẶC chưa có TmnCode + HashSecret.
+Config hien tai TmnCode/HashSecret TRONG → khong the thanh toan that.
+
+BUOC 1 — Dang ky mien phi (2 phut)
+----------------------------------
+1. Mo: https://sandbox.vnpayment.vn/devreg/
+2. Dien email cua ban, gui form
+3. Check email → copy:
+   - Terminal / TmnCode (vd: ABCD1234)
+   - Secret / HashSecret (chuoi dai)
+
+BUOC 2 — Dan vao app (1 phut)
+-----------------------------
+Mo: SaigonBite.Web\appsettings.Development.json
+
+  "Mode": "Live",
+  "PublicBaseUrl": "https://localhost:7122",
+  "VnPay": {
+    "TmnCode": "DAN-TMN-TU-EMAIL",
+    "HashSecret": "DAN-SECRET-TU-EMAIL",
+    ...
+  }
+
+Luu → chay lai scripts\run-web.cmd
+
+BUOC 3 — Test don hang (2 phut)
+-------------------------------
+1. Dang nhap Local: 0912345678 / Local@123
+2. Dat hang → Checkout → chon VNPay → Dat don
+3. Trang VNPay sandbox mo (KHONG phai loi 404)
+4. The test NCB:
+   So the: 9704198526191432198
+   Ten: NGUYEN VAN A
+   Ngay phat hanh: 07/15
+   OTP: 123456
+
+NEU VAN LOI
+-----------
+- Xem lai email VNPay: TmnCode + HashSecret dung chu?
+- Console app phai ghi Mode: Live
+- Neu chi demo mon hoc: de "Mode": "Mock" — khong can VNPay that, van dat don duoc
+
+Demo giao dien KHONG CAN cong that:
+  "Mode": "Mock"  → MoMo/VNPay chi la radio, thanh toan gia lap OK

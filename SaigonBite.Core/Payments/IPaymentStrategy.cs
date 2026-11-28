@@ -2,9 +2,14 @@ namespace SaigonBite.Core.Payments;
 
 public enum PaymentStatus { Paid, Pending, Failed, Refunded, NotCharged }
 
-public sealed record PaymentRequest(int OrderId, decimal Amount, Role Payer);
+public sealed record PaymentRequest(int OrderId, decimal Amount, Role Payer, string? TransactionRef = null);
 
-public sealed record PaymentResult(bool Success, PaymentStatus Status, string Reference, string? Message = null);
+public sealed record PaymentResult(
+    bool Success,
+    PaymentStatus Status,
+    string Reference,
+    string? Message = null,
+    string? RedirectUrl = null);
 
 /// <summary>Strategy interface: one implementation class per payment method (BR13).</summary>
 public interface IPaymentStrategy

@@ -46,7 +46,8 @@ public sealed record OrderOutcome(
     string? Message,
     int? OrderId,
     PriceBreakdown? Price,
-    IReadOnlyList<string> LineErrors)
+    IReadOnlyList<string> LineErrors,
+    string? RedirectUrl = null)
 {
     public static OrderOutcome Ok(int orderId, PriceBreakdown price) =>
         new(true, RejectReason.None, null, orderId, price, Array.Empty<string>());
@@ -54,6 +55,9 @@ public sealed record OrderOutcome(
         new(false, RejectReason.None, message, null, null, Array.Empty<string>());
     public static OrderOutcome FromPreview(PreviewResult preview) =>
         new(false, preview.Reason, preview.Message, null, null, preview.LineErrors);
+    /// <summary>Live gateway: checkout is staged; the order row is written only after the provider confirms payment.</summary>
+    public static OrderOutcome AwaitingGateway(string redirectUrl) =>
+        new(false, RejectReason.None, null, null, null, Array.Empty<string>(), redirectUrl);
 }
 
 /// <summary>
@@ -71,18 +75,21 @@ public sealed class OrderService
     private readonly OrderReadService _read;
     private readonly CustomerCatalogService _catalog;
     private readonly IDistrictCatalog _districts;
+    private readonly PendingPaymentService _pending;
 
     // Existing six-argument constructor is preserved for the unit tests.
     public OrderService(SaigonBiteDbContext db, PricingService pricing, PaymentContext payments,
         SettingsService settings, IClock clock, IDistanceService distance)
         : this(db, pricing, payments, settings, clock, distance,
-            new OrderReadService(db), new CustomerCatalogService(db), new DistrictCatalog())
+            new OrderReadService(db), new CustomerCatalogService(db), new DistrictCatalog(),
+            new PendingPaymentService(db, clock))
     {
     }
 
     public OrderService(SaigonBiteDbContext db, PricingService pricing, PaymentContext payments,
         SettingsService settings, IClock clock, IDistanceService distance,
-        OrderReadService read, CustomerCatalogService catalog, IDistrictCatalog districts)
+        OrderReadService read, CustomerCatalogService catalog, IDistrictCatalog districts,
+        PendingPaymentService pending)
     {
         _db = db;
         _pricing = pricing;
@@ -93,6 +100,7 @@ public sealed class OrderService
         _read = read;
         _catalog = catalog;
         _districts = districts;
+        _pending = pending;
     }
 
     /// <summary>FR-C1/C2/C3/C5: read-only UI data is exposed here so controllers only call this service.</summary>
@@ -114,6 +122,22 @@ public sealed class OrderService
     /// <summary>BR13: checkout options come from the single Core payment registry (no UI rules).</summary>
     public IReadOnlyList<PaymentMethod> AllowedPaymentMethods(Role payer, decimal total) =>
         _payments.AllowedMethods(payer, total);
+
+    /// <summary>Role for BR13 enforcement; same source as <see cref="PlaceOrderAsync"/> (database, not the auth cookie).</summary>
+    public async Task<Role?> GetCustomerRoleAsync(int customerId)
+    {
+        var user = await _db.Users.AsNoTracking()
+            .SingleOrDefaultAsync(u => u.Id == customerId && u.IsActive);
+        return user is { Role: var role } && role.IsCustomer() ? role : null;
+    }
+
+    /// <summary>BR13: methods shown at checkout for the signed-in customer and rounded total.</summary>
+    public async Task<IReadOnlyList<PaymentMethod>> AllowedPaymentMethodsForCustomerAsync(
+        int customerId, decimal roundedTotal)
+    {
+        var role = await GetCustomerRoleAsync(customerId);
+        return role is null ? Array.Empty<PaymentMethod>() : AllowedPaymentMethods(role.Value, roundedTotal);
+    }
 
     /// <summary>Prices a basket without writing anything.</summary>
     public async Task<PreviewResult> PreviewPriceAsync(PlaceOrderInput input)
@@ -147,11 +171,64 @@ public sealed class OrderService
             return OrderOutcome.Failed(ex.Message);
         }
 
+        var txnRef = Guid.NewGuid().ToString("N")[..12];
         // OrderId 0 is a placeholder: the gateway decides before any row is saved (A-12).
-        var paymentResult = strategy.Pay(new PaymentRequest(0, price.Total, p.Customer.Role));
+        var paymentResult = strategy.Pay(new PaymentRequest(0, price.Total, p.Customer.Role, txnRef));
         if (!paymentResult.Success)
             return OrderOutcome.Failed(paymentResult.Message ?? "Payment was declined.");
 
+        if (!string.IsNullOrWhiteSpace(paymentResult.RedirectUrl))
+        {
+            var payload = ToPendingPayload(input, p, price);
+            var providerRef = input.PaymentMethod == PaymentMethod.PayPal ? paymentResult.Message : null;
+            await _pending.StageAsync(paymentResult.Reference, input.PaymentMethod, p.Customer.Id, payload, providerRef);
+            return OrderOutcome.AwaitingGateway(paymentResult.RedirectUrl!);
+        }
+
+        return await CommitPreparedAsync(input, p, price, input.PaymentMethod, paymentResult);
+    }
+
+    public async Task<OrderOutcome> FinalizeStagedCheckoutAsync(
+        string transactionRef,
+        decimal gatewayAmount,
+        PaymentResult paymentResult,
+        bool trustPayloadAmount = false)
+    {
+        var pending = await _pending.FindOpenAsync(transactionRef);
+        if (pending is null)
+            return OrderOutcome.Failed("This checkout expired or was already completed.");
+
+        if (pending.ExpiresAt < VietnamTime.FromUtc(_clock.UtcNow))
+            return OrderOutcome.Failed("This checkout expired. Please place the order again.");
+
+        var payload = await _pending.ReadPayloadAsync(pending);
+        if (payload is null)
+            return OrderOutcome.Failed("Could not read staged checkout.");
+
+        if (!trustPayloadAmount && payload.Price.Total != gatewayAmount)
+            return OrderOutcome.Failed("The paid amount does not match the order total.");
+
+        var prepared = await PrepareAsync(payload.Input);
+        if (prepared.Data is null)
+            return OrderOutcome.Failed(prepared.Message ?? "The staged order is no longer valid.");
+
+        if (prepared.Data.Pricing.Breakdown!.Total != payload.Price.Total)
+            return OrderOutcome.Failed("Prices changed since checkout. Please try again.");
+
+        var outcome = await CommitPreparedAsync(
+            payload.Input, prepared.Data, payload.Price, pending.Method, paymentResult);
+        if (outcome.Accepted)
+            await _pending.MarkCompletedAsync(transactionRef);
+        return outcome;
+    }
+
+    private async Task<OrderOutcome> CommitPreparedAsync(
+        PlaceOrderInput input,
+        Prepared p,
+        PriceBreakdown price,
+        PaymentMethod method,
+        PaymentResult paymentResult)
+    {
         var voucherId = p.VoucherId is not null && price.VoucherDiscount > 0 ? p.VoucherId : null;
         var voucherNote = p.NoteOverride ?? price.VoucherNote;
 
@@ -162,7 +239,7 @@ public sealed class OrderService
             {
                 CustomerId = p.Customer.Id,
                 HubId = p.Hub.Id,
-                Status = OrderStatus.Placed, // initial state, not a transition (BR15)
+                Status = OrderStatus.Placed,
                 DeliveryAddress = input.DeliveryAddress,
                 HotelName = input.HotelName,
                 RoomNumber = input.RoomNumber,
@@ -183,7 +260,7 @@ public sealed class OrderService
                 Total = price.Total
             };
             _db.Orders.Add(order);
-            await _db.SaveChangesAsync(); // identity for the child rows
+            await _db.SaveChangesAsync();
 
             foreach (var (item, quantity) in p.Items)
             {
@@ -192,16 +269,16 @@ public sealed class OrderService
                     OrderId = order.Id,
                     MenuItemId = item.Id,
                     Quantity = quantity,
-                    UnitPrice = item.Price // BR17: price at placement, not the current price
+                    UnitPrice = item.Price
                 });
             }
 
             _db.Payments.Add(new Payment
             {
                 OrderId = order.Id,
-                Method = input.PaymentMethod,
+                Method = method,
                 Amount = price.Total,
-                Status = paymentResult.Status, // online Paid, COD Pending (BR13/BR14)
+                Status = paymentResult.Status,
                 CashConfirmed = false,
                 Reference = paymentResult.Reference,
                 Message = paymentResult.Message,
@@ -211,7 +288,7 @@ public sealed class OrderService
             _db.OrderStatusHistories.Add(new OrderStatusHistory
             {
                 OrderId = order.Id,
-                FromStatus = null, // null -> Placed, by the customer (BR15)
+                FromStatus = null,
                 ToStatus = OrderStatus.Placed,
                 ActorUserId = p.Customer.Id,
                 ChangedAt = p.PlacedAt
@@ -227,6 +304,26 @@ public sealed class OrderService
             throw;
         }
     }
+
+    private static PendingCheckoutPayload ToPendingPayload(PlaceOrderInput input, Prepared p, PriceBreakdown price) =>
+        new()
+        {
+            Input = input,
+            CustomerId = p.Customer.Id,
+            HubId = p.Hub.Id,
+            PlacedAt = p.PlacedAt,
+            SnapshotHubLoad = p.HubLoad,
+            SnapshotHeavyRain = p.HeavyRain,
+            Lines = p.Items.Select(x => new PendingCheckoutLine
+            {
+                MenuItemId = x.Item.Id,
+                Quantity = x.Quantity,
+                UnitPrice = x.Item.Price
+            }).ToList(),
+            Price = price,
+            VoucherId = p.VoucherId,
+            VoucherNote = p.NoteOverride ?? price.VoucherNote
+        };
 
     private async Task<Preparation> PrepareAsync(PlaceOrderInput input)
     {

@@ -111,4 +111,37 @@ public sealed class CustomerPathIntegrationTests : IDisposable
         Assert.Equal(OrderStatus.Placed, history.ToStatus);
         Assert.Equal(localId, history.ActorUserId);
     }
+
+    [Fact]
+    public async Task Checkout_lists_only_BR13_payment_methods_for_local_and_tourist()
+    {
+        static async Task<string> CheckoutHtmlAfterCartAsync(WebTestHarness harness, string identifier, string password)
+        {
+            using var client = await WebForms.LoginAsync(harness, identifier, password);
+            var menuToken = await WebForms.TokenFromAsync(client, "/Order/Menu?hubId=1");
+            var cart = await client.PostAsync("/Order/Cart", new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("hubId", "1"),
+                new KeyValuePair<string, string>("itemIds", "2"),
+                new KeyValuePair<string, string>("quantities", "2"),
+                new KeyValuePair<string, string>("__RequestVerificationToken", menuToken)
+            }));
+            Assert.Equal(HttpStatusCode.Found, cart.StatusCode);
+            var checkout = await client.GetAsync(cart.Headers.Location!);
+            Assert.Equal(HttpStatusCode.OK, checkout.StatusCode);
+            return await checkout.Content.ReadAsStringAsync();
+        }
+
+        var localHtml = await CheckoutHtmlAfterCartAsync(_harness, "0912345678", "Local@123");
+        Assert.Contains("pay-Momo", localHtml);
+        Assert.Contains("pay-VnPay", localHtml);
+        Assert.DoesNotContain("pay-ApplePay", localHtml);
+        Assert.DoesNotContain("pay-PayPal", localHtml);
+
+        var touristHtml = await CheckoutHtmlAfterCartAsync(_harness, "A1234567", "Tourist@123");
+        Assert.Contains("pay-ApplePay", touristHtml);
+        Assert.Contains("pay-PayPal", touristHtml);
+        Assert.DoesNotContain("pay-Momo", touristHtml);
+        Assert.DoesNotContain("pay-VnPay", touristHtml);
+    }
 }

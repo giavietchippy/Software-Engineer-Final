@@ -45,7 +45,8 @@ internal sealed class WebTestHarness : IDisposable
             builder.ConfigureAppConfiguration((_, cfg) =>
                 cfg.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:SaigonBite"] = _connectionString
+                    ["ConnectionStrings:SaigonBite"] = _connectionString,
+                    ["Payments:Mode"] = "Mock"
                 }));
         });
     }

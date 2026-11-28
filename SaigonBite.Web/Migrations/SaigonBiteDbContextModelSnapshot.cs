@@ -552,6 +552,48 @@ namespace SaigonBite.Web.Migrations
                     b.ToTable("PendingRegistrations", (string)null);
                 });
 
+            modelBuilder.Entity("SaigonBite.Web.Data.PendingOnlinePayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProviderReference")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionRef")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TransactionRef")
+                        .IsUnique();
+
+                    b.ToTable("PendingOnlinePayments", (string)null);
+                });
+
             modelBuilder.Entity("SaigonBite.Web.Data.ShipperAssignment", b =>
                 {
                     b.Property<int>("Id")

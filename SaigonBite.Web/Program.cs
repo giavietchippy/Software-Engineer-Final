@@ -10,7 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using SaigonBite.Core;
 using SaigonBite.Core.Payments;
 using SaigonBite.Core.Pricing;
+using Microsoft.Extensions.Options;
 using SaigonBite.Web.Data;
+using SaigonBite.Web.Payments;
 using SaigonBite.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,12 +64,7 @@ builder.Services.AddDbContext<SaigonBiteDbContext>(options =>
 
 // Core business services stay in SaigonBite.Core; controllers only call services (architecture rule).
 builder.Services.AddSingleton<PricingService>();                       // BR1-BR11
-builder.Services.AddSingleton<IPaymentStrategy, MomoPayment>();        // BR13
-builder.Services.AddSingleton<IPaymentStrategy, VnPayPayment>();       // BR13
-builder.Services.AddSingleton<IPaymentStrategy, ApplePayPayment>();    // BR13
-builder.Services.AddSingleton<IPaymentStrategy, PayPalPayment>();      // BR13
-builder.Services.AddSingleton<IPaymentStrategy, CodPayment>();         // BR13, BR14
-builder.Services.AddSingleton<PaymentContext>();                       // BR13: receives all IPaymentStrategy registrations
+builder.Services.AddSaigonBitePaymentStrategies(builder.Configuration);  // BR13: Mock or Live sandbox
 builder.Services.AddScoped<SettingsService>();                        // FR-D14, BR5
 builder.Services.AddScoped<OrderReadService>();                       // A-09: detail/history ignore soft-delete filters
 builder.Services.AddScoped<ReportService>();                          // R1, R2
@@ -84,6 +81,8 @@ builder.Services.AddSingleton<CheckoutDistanceService>();              // A-06: 
 builder.Services.AddSingleton<IDistrictCatalog, DistrictCatalog>();    // FR-C3 dropdown source
 builder.Services.AddScoped<CustomerCatalogService>();                 // FR-C1/C2 catalog reads
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
+builder.Services.AddScoped<PendingPaymentService>();
+builder.Services.AddScoped<PaymentReturnService>();
 builder.Services.AddScoped<OrderStatusService>();                      // BR14-BR17, A-02/A-12/A-15
 builder.Services.AddScoped<ShipperAssignmentService>();                // A-01/A-04, BR14
 builder.Services.AddScoped<StaffOrderReadService>();                   // read-only lists for kitchen/shipper/admin screens
@@ -95,6 +94,14 @@ builder.Services.AddScoped<DemoDataSeeder>();                          // N-01: 
 builder.Services.AddScoped<SeedUserInitializer>();                      // N-02: real hashes; env-only passwords in Production
 
 var app = builder.Build();
+
+var paymentOpts = app.Services.GetRequiredService<IOptions<PaymentGatewayOptions>>().Value;
+Console.WriteLine("── Payments ──");
+Console.WriteLine($"  Mode: {paymentOpts.Mode}  (Mock = no redirect; Live = real sandbox)");
+Console.WriteLine($"  PublicBaseUrl: {paymentOpts.PublicBaseUrl}");
+Console.WriteLine(paymentOpts.Mode.Equals("Live", StringComparison.OrdinalIgnoreCase)
+    ? "  Order + MoMo/VNPay/PayPal → browser leaves site. Guide: scripts/LIVE-PAYMENTS.txt"
+    : "  To redirect at checkout: set Payments:Mode to Live in appsettings.Development.json");
 
 // N-02: finalise seed hashes; in Production only SAIGONBITE_SEED_*_PASSWORD is used (missing = skip + warn).
 using (var scope = app.Services.CreateScope())

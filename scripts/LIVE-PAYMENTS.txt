@@ -1,0 +1,66 @@
+SaigonBite — connect a real provider at checkout (order step)
+=============================================================
+
+WHY CHECKOUT DID NOT OPEN MOMO
+- Default is Payments:Mode = "Mock" → pay is fake, you stay on Track page.
+- Live + MoMo also needs PUBLIC https callbacks (ngrok), not localhost only.
+
+QUICK CHOICE
+------------
+A) Demo for class / no account     → keep "Mode": "Mock"
+B) Local customer + redirect       → VNPay sandbox (easiest for VN)
+C) Local customer + MoMo           → Live + ngrok + MoMo Test keys
+D) Tourist + redirect              → PayPal sandbox
+
+STEP 0 — SAME FOR ALL LIVE MODES
+--------------------------------
+1. Open: SaigonBite.Web\appsettings.Development.json
+2. Change:  "Mode": "Live"
+3. Save, restart: scripts\run-web.cmd
+4. Run with HTTPS profile (https://localhost:7122)
+5. Console must show: Mode: Live
+
+OPTION B — VNPAY (recommended for Local / Vietnamese wallet style)
+------------------------------------------------------------------
+1. Register: https://sandbox.vnpayment.vn/dang-nhap-tai-khoan
+2. In merchant portal copy: Terminal Code (TmnCode) + Secret (HashSecret)
+3. In appsettings.Development.json under Payments:VnPay:
+     "TmnCode": "your-code",
+     "HashSecret": "your-secret"
+4. PublicBaseUrl can stay https://localhost:7122 (VNPay sandbox often allows it)
+5. Login Local (0912345678 / Local@123) → checkout → VNPay → Place order
+   → browser opens sandbox.vnpayment.vn → pay → returns to /Payment/VnPayReturn
+
+OPTION C — MOMO
+---------------
+1. Keys already in appsettings (public training keys MOMO / F8BB... / K951...)
+   OR keys from https://developers.momo.vn (Test business account)
+2. Install ngrok: https://ngrok.com/download
+3. Terminal 1: scripts\run-web.cmd  (port 7122 https)
+4. Terminal 2: ngrok http 7122
+5. Copy ngrok https URL (e.g. https://abc123.ngrok-free.app)
+6. In appsettings.Development.json:
+     "PublicBaseUrl": "https://abc123.ngrok-free.app"
+   Optional if needed:
+     "Momo": {
+       "RedirectUrlOverride": "https://abc123.ngrok-free.app/Payment/MomoReturn",
+       "IpnUrlOverride": "https://abc123.ngrok-free.app/Payment/MomoIpn",
+       ...
+     }
+7. Restart app. Login Local → MoMo → Place order → MoMo test page
+
+OPTION D — PAYPAL (Tourist)
+---------------------------
+1. https://developer.paypal.com → Dashboard → Apps → Create app (Sandbox)
+2. Copy Client ID + Secret into Payments:PayPal
+3. PublicBaseUrl: https://localhost:7122
+4. Login Tourist (A1234567 / Tourist@123) → PayPal → Place order
+
+COD never redirects (cash on delivery).
+
+TROUBLE
+-------
+- Still no redirect → Mode is still Mock or app not restarted
+- MoMo 403 → use ngrok PublicBaseUrl; keys must be Test environment
+- Error on checkout red box → read message; fix keys or URLs
+- Full tests: scripts\test-all.cmd
