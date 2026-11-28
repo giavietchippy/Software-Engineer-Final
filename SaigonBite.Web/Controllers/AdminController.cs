@@ -7,7 +7,7 @@ namespace SaigonBite.Web.Controllers;
 
 /// <summary>Minimal Admin wiring: Chart.js dashboard JSON plus account management (FR-R3, BR18).</summary>
 [Authorize(Policy = "Admin")]
-public sealed class AdminController : Controller
+public sealed partial class AdminController : Controller
 {
     private readonly ReportService _reports;
     private readonly AccountManagementService _accounts;

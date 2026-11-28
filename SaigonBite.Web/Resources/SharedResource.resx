@@ -236,4 +236,68 @@
   <data name="MenuViewCart" xml:space="preserve"><value>View cart</value></data>
   <data name="HubMenuBusy" xml:space="preserve"><value>Kitchen load</value></data>
   <data name="AddItem" xml:space="preserve"><value>Add</value></data>
+  <data name="NavKitchen" xml:space="preserve"><value>Kitchen</value></data>
+  <data name="NavDeliveries" xml:space="preserve"><value>Deliveries</value></data>
+  <data name="NavAdminOrders" xml:space="preserve"><value>Orders</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="OrderHub" xml:space="preserve"><value>Hub</value></data>
+  <data name="StaffPayment" xml:space="preserve"><value>Payment</value></data>
+  <data name="ClearFilter" xml:space="preserve"><value>Clear filter</value></data>
+  <data name="ReasonRequired" xml:space="preserve"><value>Reason (required)</value></data>
+  <data name="KitchenTitle" xml:space="preserve"><value>Kitchen orders</value></data>
+  <data name="KitchenNoHub" xml:space="preserve"><value>Your account is not linked to a hub yet. Ask an admin to assign one.</value></data>
+  <data name="KitchenEmpty" xml:space="preserve"><value>No orders are waiting right now.</value></data>
+  <data name="KitchenStatNew" xml:space="preserve"><value>New orders</value></data>
+  <data name="KitchenStatCooking" xml:space="preserve"><value>In the kitchen</value></data>
+  <data name="KitchenStatReady" xml:space="preserve"><value>Waiting for pickup</value></data>
+  <data name="KitchenConfirm" xml:space="preserve"><value>Confirm order</value></data>
+  <data name="KitchenStartPrep" xml:space="preserve"><value>Start preparing</value></data>
+  <data name="KitchenMarkReady" xml:space="preserve"><value>Mark ready</value></data>
+  <data name="KitchenWaitShipper" xml:space="preserve"><value>Waiting for a shipper to pick it up.</value></data>
+  <data name="KitchenUpdated" xml:space="preserve"><value>Order updated.</value></data>
+  <data name="ShipperTitle" xml:space="preserve"><value>My deliveries</value></data>
+  <data name="ShipperLimitNote" xml:space="preserve"><value>Maximum orders out for delivery at the same time:</value></data>
+  <data name="ShipperActive" xml:space="preserve"><value>Active deliveries</value></data>
+  <data name="ShipperDone" xml:space="preserve"><value>Recently completed</value></data>
+  <data name="ShipperEmpty" xml:space="preserve"><value>No orders are assigned to you right now.</value></data>
+  <data name="ShipperPickup" xml:space="preserve"><value>Pick up order</value></data>
+  <data name="ShipperConfirmCash" xml:space="preserve"><value>Cash received</value></data>
+  <data name="ShipperMarkDelivered" xml:space="preserve"><value>Mark delivered</value></data>
+  <data name="ShipperMarkFailed" xml:space="preserve"><value>Delivery failed</value></data>
+  <data name="ShipperCollect" xml:space="preserve"><value>Collect from customer</value></data>
+  <data name="ShipperPaidOnline" xml:space="preserve"><value>Paid online, nothing to collect</value></data>
+  <data name="ShipperCashDone" xml:space="preserve"><value>Cash confirmed</value></data>
+  <data name="ShipperCashFirst" xml:space="preserve"><value>Confirm the cash before marking this order delivered.</value></data>
+  <data name="ShipperFailReason" xml:space="preserve"><value>Reason for failed delivery</value></data>
+  <data name="ShipperPickedUp" xml:space="preserve"><value>Order picked up. Safe trip!</value></data>
+  <data name="ShipperCashConfirmed" xml:space="preserve"><value>Cash confirmed.</value></data>
+  <data name="ShipperDelivered" xml:space="preserve"><value>Order marked as delivered.</value></data>
+  <data name="ShipperFailed" xml:space="preserve"><value>Order marked as failed.</value></data>
+  <data name="AdminOrdersTitle" xml:space="preserve"><value>Orders</value></data>
+  <data name="AdminOrdersCount" xml:space="preserve"><value>orders shown</value></data>
+  <data name="AdminAllStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="AdminAllHubs" xml:space="preserve"><value>All hubs</value></data>
+  <data name="AdminFilter" xml:space="preserve"><value>Filter</value></data>
+  <data name="AdminOrdersEmpty" xml:space="preserve"><value>No orders match these filters.</value></data>
+  <data name="AdminShipper" xml:space="preserve"><value>Shipper</value></data>
+  <data name="AdminNoShipper" xml:space="preserve"><value>Not assigned</value></data>
+  <data name="AdminPickShipper" xml:space="preserve"><value>Choose a shipper</value></data>
+  <data name="AdminAssign" xml:space="preserve"><value>Assign</value></data>
+  <data name="AdminReassign" xml:space="preserve"><value>Reassign</value></data>
+  <data name="AdminUnassign" xml:space="preserve"><value>Unassign</value></data>
+  <data name="AdminManage" xml:space="preserve"><value>Manage</value></data>
+  <data name="AdminNoActions" xml:space="preserve"><value>No actions available</value></data>
+  <data name="AdminAssigned" xml:space="preserve"><value>Shipper assigned.</value></data>
+  <data name="AdminReassigned" xml:space="preserve"><value>Shipper changed.</value></data>
+  <data name="AdminUnassigned" xml:space="preserve"><value>Shipper removed from the order.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>System settings</value></data>
+  <data name="SettingsSubtitle" xml:space="preserve"><value>Switches that change how new orders are priced.</value></data>
+  <data name="SettingsHeavyRain" xml:space="preserve"><value>Heavy rain</value></data>
+  <data name="SettingsHeavyRainHelp" xml:space="preserve"><value>When on, new orders get the rain surcharge. Orders already placed keep the price they were given.</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>Save changes</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="HomeKitchenOpen" xml:space="preserve"><value>Open kitchen orders</value></data>
+  <data name="HomeShipperOpen" xml:space="preserve"><value>Open my deliveries</value></data>
+  <data name="ConfirmFailDelivery" xml:space="preserve"><value>Mark this delivery as failed? This cannot be undone.</value></data>
 </root>

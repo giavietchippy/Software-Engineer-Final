@@ -1,0 +1,8 @@
+@{
+    var toastKey = TempData["Toast"] as string;
+    var toastType = TempData["ToastType"] as string ?? "success";
+}
+@if (!string.IsNullOrEmpty(toastKey))
+{
+    <div hidden data-toast-message="@(toastType == "success" ? L[toastKey].Value : toastKey)" data-toast-type="@toastType"></div>
+}

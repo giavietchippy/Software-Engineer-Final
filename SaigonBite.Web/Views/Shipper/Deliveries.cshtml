@@ -1,0 +1,154 @@
+@model ShipperViewModel
+@{
+    ViewData["Title"] = L["ShipperTitle"];
+    var active = Model.Orders.Where(o => o.Status is OrderStatus.Ready or OrderStatus.OutForDelivery)
+        .OrderBy(o => o.PlacedAt).ToList();
+    var done = Model.Orders.Where(o => o.Status is OrderStatus.Delivered or OrderStatus.Failed).Take(10).ToList();
+    var outNow = active.Count(o => o.Status == OrderStatus.OutForDelivery);
+}
+
+<div class="sb-page-head">
+    <div>
+        <h1>@L["ShipperTitle"]</h1>
+        <p>@L["ShipperLimitNote"] <strong>@Model.OutForDeliveryLimit</strong> · @outNow / @Model.OutForDeliveryLimit</p>
+    </div>
+    <a asp-action="Deliveries" class="btn btn-outline-secondary">@L["Refresh"]</a>
+</div>
+
+<partial name="_StaffToast" />
+
+<h2 class="sb-sec-title">@L["ShipperActive"]</h2>
+@if (active.Count == 0)
+{
+    <div class="sb-table-wrap mb-4">
+        <div class="sb-empty">
+            <partial name="_Scene" model='"empty-orders"' />
+            <strong>@L["ShipperEmpty"]</strong>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        @foreach (var order in active)
+        {
+            var cashPending = order.IsCod && !order.CashConfirmed;
+            <div class="col-12 col-lg-6">
+                <div class="card sb-staffcard h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                        <span class="fw-semibold">@L["OrderNumber"] #@order.Id</span>
+                        <partial name="_StatusBadge" model="order.Status" />
+                    </div>
+                    <div class="card-body">
+                        <dl class="sb-kv mb-3">
+                            <dt>@L["DeliveryTo"]</dt>
+                            <dd>@order.DeliveryAddress</dd>
+                            @if (!string.IsNullOrWhiteSpace(order.HotelName))
+                            {
+                                <dt>@L["HotelName"]</dt>
+                                <dd>@order.HotelName / @order.RoomNumber</dd>
+                            }
+                            <dt>@L["OrderHub"]</dt>
+                            <dd>@order.HubName</dd>
+                            <dt>@L["StaffPayment"]</dt>
+                            <dd>
+                                @if (order.Method is { } method)
+                                {
+                                    <span class="sb-pill">@L["Payment" + method]</span>
+                                }
+                            </dd>
+                        </dl>
+
+                        <ul class="sb-staffitems">
+                            @foreach (var line in order.Lines)
+                            {
+                                <li><span class="sb-qty">@line.Quantity ×</span> <span>@line.ItemName</span></li>
+                            }
+                        </ul>
+
+                        @if (order.IsCod)
+                        {
+                            <div class="sb-collect @(order.CashConfirmed ? "is-done" : "")">
+                                <small>@(order.CashConfirmed ? L["ShipperCashDone"] : L["ShipperCollect"])</small>
+                                <strong class="tabular">@order.Total.ToString("N0")&nbsp;₫</strong>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small">@L["ShipperPaidOnline"] · <span class="tabular">@order.Total.ToString("N0")&nbsp;₫</span></p>
+                        }
+
+                        @if (order.Status == OrderStatus.Ready)
+                        {
+                            <form asp-action="Pickup" method="post">
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <button type="submit" class="btn btn-primary">@L["ShipperPickup"]</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-wrap gap-2 align-items-start">
+                                @if (cashPending)
+                                {
+                                    <form asp-action="ConfirmCash" method="post">
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <button type="submit" class="btn btn-primary">@L["ShipperConfirmCash"]</button>
+                                    </form>
+                                }
+                                <form asp-action="Delivered" method="post">
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <button type="submit" class="btn @(cashPending ? "btn-outline-secondary" : "btn-primary")" disabled="@cashPending" title="@(cashPending ? L["ShipperCashFirst"].Value : null)">@L["ShipperMarkDelivered"]</button>
+                                </form>
+                                <details class="sb-staffcancel">
+                                    <summary class="btn btn-outline-danger">@L["ShipperMarkFailed"]</summary>
+                                    <form asp-action="Fail" method="post" class="mt-2" data-confirm="@L["ConfirmFailDelivery"]">
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <label class="form-label" for="fail-@order.Id">@L["ShipperFailReason"]</label>
+                                        <input class="form-control mb-2" id="fail-@order.Id" name="reason" required maxlength="200" autocomplete="off" />
+                                        <button type="submit" class="btn btn-danger">@L["ShipperMarkFailed"]</button>
+                                    </form>
+                                </details>
+                            </div>
+                            @if (cashPending)
+                            {
+                                <p class="small text-muted mt-2 mb-0">@L["ShipperCashFirst"]</p>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (done.Count > 0)
+{
+    <h2 class="sb-sec-title">@L["ShipperDone"]</h2>
+    <div class="sb-table-wrap">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["OrderNumber"]</th>
+                        <th>@L["PlacedAt"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Address"]</th>
+                        <th class="text-end">@L["OrderTotal"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in done)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@order.Id</td>
+                            <td class="text-nowrap">@order.PlacedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><partial name="_StatusBadge" model="order.Status" /></td>
+                            <td class="sb-wrap">@order.DeliveryAddress</td>
+                            <td class="text-end tabular">@order.Total.ToString("N0")&nbsp;₫</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -3,6 +3,8 @@
     var signedIn = User.Identity?.IsAuthenticated == true;
     var isCustomer = signedIn && (User.IsInRole("Local") || User.IsInRole("Tourist"));
     var isAdmin = signedIn && User.IsInRole("Admin");
+    var isKitchen = signedIn && User.IsInRole("KitchenStaff");
+    var isShipper = signedIn && User.IsInRole("Shipper");
     var categories = new[] { "Noodles", "Rice", "Drinks", "Dessert" };
 }
 
@@ -47,6 +49,14 @@
         {
             <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-lg btn-light sb-banner-cta">@L["NavDashboard"]</a>
         }
+        else if (isKitchen)
+        {
+            <a asp-controller="Kitchen" asp-action="Orders" class="btn btn-lg btn-light sb-banner-cta">@L["HomeKitchenOpen"]</a>
+        }
+        else if (isShipper)
+        {
+            <a asp-controller="Shipper" asp-action="Deliveries" class="btn btn-lg btn-light sb-banner-cta">@L["HomeShipperOpen"]</a>
+        }
         else if (signedIn)
         {
             <a asp-controller="Account" asp-action="Profile" class="btn btn-lg btn-light sb-banner-cta">@L["NavProfile"]</a>
@@ -59,7 +69,7 @@
     </div>
 </section>
 
-@if (signedIn && !isCustomer && !isAdmin)
+@if (signedIn && !isCustomer && !isAdmin && !isKitchen && !isShipper)
 {
     <div class="alert alert-info" role="status">@L["HomeStaffNote"]</div>
 }

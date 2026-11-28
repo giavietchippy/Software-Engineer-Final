@@ -1,0 +1,28 @@
+@model AdminSettingsViewModel
+@{
+    ViewData["Title"] = L["SettingsTitle"];
+}
+
+<div class="sb-page-head">
+    <div>
+        <h1>@L["SettingsTitle"]</h1>
+        <p>@L["SettingsSubtitle"]</p>
+    </div>
+</div>
+
+<partial name="_StaffToast" />
+
+<div class="card sb-settings-card">
+    <div class="card-header">@L["SettingsHeavyRain"]</div>
+    <div class="card-body">
+        <form asp-action="Settings" method="post">
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" role="switch" id="heavyRain" name="heavyRain" value="true" checked="@Model.HeavyRain" />
+                <input type="hidden" name="heavyRain" value="false" />
+                <label class="form-check-label fw-semibold" for="heavyRain">@L["SettingsHeavyRain"]: @(Model.HeavyRain ? L["Yes"] : L["No"])</label>
+            </div>
+            <p class="text-muted">@L["SettingsHeavyRainHelp"]</p>
+            <button type="submit" class="btn btn-primary">@L["SettingsSave"]</button>
+        </form>
+    </div>
+</div>

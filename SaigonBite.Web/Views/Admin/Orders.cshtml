@@ -1,0 +1,148 @@
+@model AdminOrdersViewModel
+@{
+    ViewData["Title"] = L["AdminOrdersTitle"];
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var limit = ShipperAssignmentService.MaxOutForDelivery;
+    var allStatuses = Enum.GetValues<OrderStatus>();
+}
+
+<div class="sb-page-head">
+    <div>
+        <h1>@L["AdminOrdersTitle"]</h1>
+        <p>@Model.Orders.Count @L["AdminOrdersCount"]</p>
+    </div>
+    <a asp-action="Orders" asp-route-status="@Model.Status" asp-route-hubId="@Model.HubId" class="btn btn-outline-secondary">@L["Refresh"]</a>
+</div>
+
+<partial name="_StaffToast" />
+
+<form asp-action="Orders" method="get" class="row g-2 mb-3">
+    <div class="col-12 col-md-4 col-lg-3">
+        <label class="visually-hidden" for="status">@L["Status"]</label>
+        <select class="form-select" id="status" name="status">
+            <option value="">@L["AdminAllStatuses"]</option>
+            @foreach (var s in allStatuses)
+            {
+                <option value="@s" selected="@(Model.Status == s)">@L["Status" + s]</option>
+            }
+        </select>
+    </div>
+    <div class="col-12 col-md-4 col-lg-3">
+        <label class="visually-hidden" for="hubId">@L["OrderHub"]</label>
+        <select class="form-select" id="hubId" name="hubId">
+            <option value="">@L["AdminAllHubs"]</option>
+            @foreach (var hub in Model.Hubs)
+            {
+                <option value="@hub.Id" selected="@(Model.HubId == hub.Id)">@hub.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto"><button class="btn btn-outline-secondary" type="submit">@L["AdminFilter"]</button></div>
+    @if (Model.Status is not null || Model.HubId is not null)
+    {
+        <div class="col-auto"><a class="btn btn-link" asp-action="Orders">@L["ClearFilter"]</a></div>
+    }
+</form>
+
+<div class="sb-table-wrap">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" data-paginate="10" data-prev-label="@L["Previous"]" data-next-label="@L["Next"]">
+            <thead>
+                <tr>
+                    <th>@L["OrderNumber"]</th>
+                    <th>@L["OrderHub"]</th>
+                    <th>@L["PlacedAt"]</th>
+                    <th>@L["Status"]</th>
+                    <th>@L["StaffPayment"]</th>
+                    <th class="text-end">@L["OrderTotal"]</th>
+                    <th>@L["AdminShipper"]</th>
+                    <th class="text-end"><span class="visually-hidden">@L["AccountAction"]</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Orders.Count == 0)
+                {
+                    <tr data-empty><td colspan="8"><div class="sb-empty">@L["AdminOrdersEmpty"]</div></td></tr>
+                }
+                @foreach (var order in Model.Orders)
+                {
+                    var beforePickup = order.Status is OrderStatus.Placed or OrderStatus.Confirmed or OrderStatus.Preparing or OrderStatus.Ready;
+                    var canAssign = order.Status == OrderStatus.Ready && order.ShipperId is null;
+                    var canChange = beforePickup && order.ShipperId is not null;
+                    var canCancel = order.Status == OrderStatus.Confirmed;
+                    <tr>
+                        <td class="fw-semibold">#@order.Id</td>
+                        <td class="sb-wrap">@order.HubName</td>
+                        <td class="text-nowrap">@order.PlacedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><partial name="_StatusBadge" model="order.Status" /></td>
+                        <td>
+                            @if (order.Method is { } method)
+                            {
+                                <span class="sb-pill">@L["Payment" + method]</span>
+                            }
+                        </td>
+                        <td class="text-end tabular">@order.Total.ToString("N0")&nbsp;₫</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(order.ShipperName))
+                            {
+                                <span class="sb-pill sb-pill-accent">@order.ShipperName</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">@L["AdminNoShipper"]</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (canAssign || canChange || canCancel)
+                            {
+                                <details class="sb-rowmenu">
+                                    <summary class="btn btn-sm btn-outline-primary">@L["AdminManage"]</summary>
+                                    <div class="sb-rowmenu-body">
+                                        @if (canAssign || canChange)
+                                        {
+                                            <form asp-action="@(canAssign ? "Assign" : "Reassign")" method="post" class="mb-2">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                                <label class="form-label" for="ship-@order.Id">@L["AdminShipper"]</label>
+                                                <select class="form-select form-select-sm mb-2" id="ship-@order.Id" name="shipperId" required>
+                                                    <option value="">@L["AdminPickShipper"]</option>
+                                                    @foreach (var shipper in Model.Shippers.Where(s => s.Id != order.ShipperId))
+                                                    {
+                                                        <option value="@shipper.Id">@shipper.Identifier (@shipper.OutForDelivery/@limit)</option>
+                                                    }
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-primary">@(canAssign ? L["AdminAssign"] : L["AdminReassign"])</button>
+                                            </form>
+                                        }
+                                        @if (canChange)
+                                        {
+                                            <form asp-action="Unassign" method="post" class="mb-2">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">@L["AdminUnassign"]</button>
+                                            </form>
+                                        }
+                                        @if (canCancel)
+                                        {
+                                            <form asp-action="CancelOrder" method="post" data-confirm="@L["ConfirmCancelOrder"]">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                                <label class="form-label" for="cancel-@order.Id">@L["CancelReason"]</label>
+                                                <input class="form-control form-control-sm mb-2" id="cancel-@order.Id" name="reason" maxlength="200" autocomplete="off" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">@L["CancelOrder"]</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </details>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">–</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

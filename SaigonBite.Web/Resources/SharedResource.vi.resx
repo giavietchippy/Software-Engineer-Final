@@ -236,4 +236,68 @@
   <data name="MenuViewCart" xml:space="preserve"><value>Xem giỏ hàng</value></data>
   <data name="HubMenuBusy" xml:space="preserve"><value>Độ bận của bếp</value></data>
   <data name="AddItem" xml:space="preserve"><value>Thêm</value></data>
+  <data name="NavKitchen" xml:space="preserve"><value>Bếp</value></data>
+  <data name="NavDeliveries" xml:space="preserve"><value>Giao hàng</value></data>
+  <data name="NavAdminOrders" xml:space="preserve"><value>Đơn hàng</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Cài đặt</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>
+  <data name="OrderHub" xml:space="preserve"><value>Điểm bếp</value></data>
+  <data name="StaffPayment" xml:space="preserve"><value>Thanh toán</value></data>
+  <data name="ClearFilter" xml:space="preserve"><value>Xóa bộ lọc</value></data>
+  <data name="ReasonRequired" xml:space="preserve"><value>Lý do (bắt buộc)</value></data>
+  <data name="KitchenTitle" xml:space="preserve"><value>Đơn hàng của bếp</value></data>
+  <data name="KitchenNoHub" xml:space="preserve"><value>Tài khoản của bạn chưa gắn với điểm bếp nào. Hãy nhờ quản trị viên gán điểm bếp.</value></data>
+  <data name="KitchenEmpty" xml:space="preserve"><value>Hiện chưa có đơn nào đang chờ.</value></data>
+  <data name="KitchenStatNew" xml:space="preserve"><value>Đơn mới</value></data>
+  <data name="KitchenStatCooking" xml:space="preserve"><value>Đang làm</value></data>
+  <data name="KitchenStatReady" xml:space="preserve"><value>Chờ lấy hàng</value></data>
+  <data name="KitchenConfirm" xml:space="preserve"><value>Xác nhận đơn</value></data>
+  <data name="KitchenStartPrep" xml:space="preserve"><value>Bắt đầu chế biến</value></data>
+  <data name="KitchenMarkReady" xml:space="preserve"><value>Đã làm xong</value></data>
+  <data name="KitchenWaitShipper" xml:space="preserve"><value>Đang chờ shipper đến lấy.</value></data>
+  <data name="KitchenUpdated" xml:space="preserve"><value>Đã cập nhật đơn hàng.</value></data>
+  <data name="ShipperTitle" xml:space="preserve"><value>Đơn giao của tôi</value></data>
+  <data name="ShipperLimitNote" xml:space="preserve"><value>Số đơn tối đa được giao cùng lúc:</value></data>
+  <data name="ShipperActive" xml:space="preserve"><value>Đơn đang giao</value></data>
+  <data name="ShipperDone" xml:space="preserve"><value>Đã hoàn tất gần đây</value></data>
+  <data name="ShipperEmpty" xml:space="preserve"><value>Hiện chưa có đơn nào được giao cho bạn.</value></data>
+  <data name="ShipperPickup" xml:space="preserve"><value>Đã lấy hàng</value></data>
+  <data name="ShipperConfirmCash" xml:space="preserve"><value>Đã nhận tiền mặt</value></data>
+  <data name="ShipperMarkDelivered" xml:space="preserve"><value>Đã giao xong</value></data>
+  <data name="ShipperMarkFailed" xml:space="preserve"><value>Giao không thành công</value></data>
+  <data name="ShipperCollect" xml:space="preserve"><value>Thu của khách</value></data>
+  <data name="ShipperPaidOnline" xml:space="preserve"><value>Đã thanh toán online, không cần thu tiền</value></data>
+  <data name="ShipperCashDone" xml:space="preserve"><value>Đã nhận tiền</value></data>
+  <data name="ShipperCashFirst" xml:space="preserve"><value>Hãy xác nhận đã nhận tiền trước khi báo đã giao.</value></data>
+  <data name="ShipperFailReason" xml:space="preserve"><value>Lý do giao không thành công</value></data>
+  <data name="ShipperPickedUp" xml:space="preserve"><value>Đã lấy hàng. Chúc bạn đi đường an toàn!</value></data>
+  <data name="ShipperCashConfirmed" xml:space="preserve"><value>Đã xác nhận nhận tiền.</value></data>
+  <data name="ShipperDelivered" xml:space="preserve"><value>Đã đánh dấu đơn là đã giao.</value></data>
+  <data name="ShipperFailed" xml:space="preserve"><value>Đã đánh dấu đơn giao không thành công.</value></data>
+  <data name="AdminOrdersTitle" xml:space="preserve"><value>Đơn hàng</value></data>
+  <data name="AdminOrdersCount" xml:space="preserve"><value>đơn đang hiển thị</value></data>
+  <data name="AdminAllStatuses" xml:space="preserve"><value>Tất cả trạng thái</value></data>
+  <data name="AdminAllHubs" xml:space="preserve"><value>Tất cả điểm bếp</value></data>
+  <data name="AdminFilter" xml:space="preserve"><value>Lọc</value></data>
+  <data name="AdminOrdersEmpty" xml:space="preserve"><value>Không có đơn nào khớp với bộ lọc.</value></data>
+  <data name="AdminShipper" xml:space="preserve"><value>Shipper</value></data>
+  <data name="AdminNoShipper" xml:space="preserve"><value>Chưa gán</value></data>
+  <data name="AdminPickShipper" xml:space="preserve"><value>Chọn shipper</value></data>
+  <data name="AdminAssign" xml:space="preserve"><value>Gán</value></data>
+  <data name="AdminReassign" xml:space="preserve"><value>Đổi shipper</value></data>
+  <data name="AdminUnassign" xml:space="preserve"><value>Bỏ gán</value></data>
+  <data name="AdminManage" xml:space="preserve"><value>Quản lý</value></data>
+  <data name="AdminNoActions" xml:space="preserve"><value>Không có thao tác</value></data>
+  <data name="AdminAssigned" xml:space="preserve"><value>Đã gán shipper.</value></data>
+  <data name="AdminReassigned" xml:space="preserve"><value>Đã đổi shipper.</value></data>
+  <data name="AdminUnassigned" xml:space="preserve"><value>Đã bỏ gán shipper.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Cài đặt hệ thống</value></data>
+  <data name="SettingsSubtitle" xml:space="preserve"><value>Các thiết lập ảnh hưởng đến cách tính giá đơn mới.</value></data>
+  <data name="SettingsHeavyRain" xml:space="preserve"><value>Mưa lớn</value></data>
+  <data name="SettingsHeavyRainHelp" xml:space="preserve"><value>Khi bật, đơn mới sẽ tính phụ phí mưa. Đơn đã đặt vẫn giữ nguyên giá.</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>Lưu thay đổi</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Đã lưu cài đặt.</value></data>
+  <data name="HomeKitchenOpen" xml:space="preserve"><value>Mở đơn hàng của bếp</value></data>
+  <data name="HomeShipperOpen" xml:space="preserve"><value>Mở đơn giao của tôi</value></data>
+  <data name="ConfirmFailDelivery" xml:space="preserve"><value>Đánh dấu đơn giao không thành công? Thao tác không thể hoàn tác.</value></data>
 </root>
