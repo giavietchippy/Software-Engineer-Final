@@ -21,16 +21,38 @@ public sealed class OrderController : Controller
 
     private readonly OrderService _orders;
     private readonly OrderStatusService _status;
+    private readonly CheckoutDistanceService _distance;
 
-    public OrderController(OrderService orders, OrderStatusService status)
+    public OrderController(OrderService orders, OrderStatusService status, CheckoutDistanceService distance)
     {
         _orders = orders;
         _status = status;
+        _distance = distance;
     }
 
     [HttpGet]
     public async Task<IActionResult> Hubs() =>
         View(new HubsViewModel { Hubs = await _orders.GetHubCardsAsync() });
+
+    /// <summary>
+    /// Live hub load for the hub page (polled every 10 s). Customers only (class-level policy);
+    /// returns just what the meters need: no names, no order data.
+    /// </summary>
+    [HttpGet]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> HubLoads()
+    {
+        var hubs = await _orders.GetHubCardsAsync();
+        return Json(hubs.Select(h => new
+        {
+            id = h.Id,
+            busy = h.Busy,
+            capacity = h.Capacity,
+            load = h.Load,
+            isBusy = h.IsBusy,
+            isQuiet = h.IsQuiet
+        }));
+    }
 
     [HttpGet]
     public async Task<IActionResult> Menu(int hubId)
@@ -60,22 +82,40 @@ public sealed class OrderController : Controller
         return RedirectToAction(nameof(Checkout), new { hubId });
     }
 
+    // A-06: entering Checkout draws the distance once and seals it in a ticket (no client ticket here).
     [HttpGet]
-    public async Task<IActionResult> Checkout(int hubId) =>
-        View(await BuildCheckoutAsync(hubId, new CheckoutViewModel()));
+    public async Task<IActionResult> Checkout(int hubId)
+    {
+        var model = new CheckoutViewModel();
+        var quote = _distance.Resolve(CurrentUserId(), hubId, model.District, null);
+        return View(await BuildCheckoutAsync(hubId, model, quote));
+    }
 
-    // FR-C3: one voucher box; Apply only re-prices, it never writes.
+    // FR-C3: one voucher box; Apply only re-prices, it never writes. The ticket keeps the km unchanged.
     [HttpPost]
-    public async Task<IActionResult> Preview(CheckoutViewModel model) =>
-        View("Checkout", await BuildCheckoutAsync(model.HubId, model));
+    public async Task<IActionResult> Preview(CheckoutViewModel model)
+    {
+        var quote = _distance.Resolve(CurrentUserId(), model.HubId, model.District, model.DistanceTicket);
+        return View("Checkout", await BuildCheckoutAsync(model.HubId, model, quote));
+    }
 
     [HttpPost]
     public async Task<IActionResult> Place(CheckoutViewModel model)
     {
-        var outcome = await _orders.PlaceOrderAsync(ToPlaceInput(model));
+        var quote = _distance.Resolve(CurrentUserId(), model.HubId, model.District, model.DistanceTicket);
+        if (!quote.IsReused)
+        {
+            // Missing, forged, expired or other-hub ticket: never place with an unverified distance.
+            // Show the freshly priced checkout (new km, new ticket) and let the customer confirm again.
+            var refreshed = await BuildCheckoutAsync(model.HubId, model, quote);
+            refreshed.Error = "DistanceRecalculated"; // Checkout.cshtml maps this key to the localised text
+            return View("Checkout", refreshed);
+        }
+
+        var outcome = await _orders.PlaceOrderAsync(ToPlaceInput(model, quote.Km));
         if (!outcome.Accepted)
         {
-            var rejected = await BuildCheckoutAsync(model.HubId, model);
+            var rejected = await BuildCheckoutAsync(model.HubId, model, quote);
             rejected.Error = outcome.Message ?? "The order was rejected.";
             rejected.RejectReason = outcome.RuleReason;
             rejected.LineErrors = outcome.LineErrors;
@@ -153,9 +193,14 @@ public sealed class OrderController : Controller
     public async Task<IActionResult> MyOrders() =>
         View(new MyOrdersViewModel { Orders = await _orders.GetCustomerOrdersAsync(CurrentUserId()) });
 
-    private async Task<CheckoutViewModel> BuildCheckoutAsync(int hubId, CheckoutViewModel input)
+    private async Task<CheckoutViewModel> BuildCheckoutAsync(int hubId, CheckoutViewModel input, DistanceQuote quote)
     {
         input.HubId = hubId;
+        // Whatever the client posted for km/ticket is replaced by the server's verified quote.
+        ModelState.Remove(nameof(CheckoutViewModel.DistanceTicket));
+        ModelState.Remove(nameof(CheckoutViewModel.DistanceKm));
+        input.DistanceKm = quote.Km;
+        input.DistanceTicket = quote.Ticket;
         input.Districts = _orders.Districts;
         input.IsTourist = CurrentRole() == Role.Tourist;
 
@@ -174,7 +219,7 @@ public sealed class OrderController : Controller
         }).ToList();
 
         // Preview and placement share OrderService.PrepareAsync, so this card is the final price (BR17).
-        var preview = await _orders.PreviewPriceAsync(ToPlaceInput(input));
+        var preview = await _orders.PreviewPriceAsync(ToPlaceInput(input, quote.Km));
         if (preview.Accepted)
         {
             input.Breakdown = preview.Breakdown;
@@ -206,13 +251,14 @@ public sealed class OrderController : Controller
         };
     }
 
-    private PlaceOrderInput ToPlaceInput(CheckoutViewModel m) => new(
+    private PlaceOrderInput ToPlaceInput(CheckoutViewModel m, decimal distanceKm) => new(
         CurrentUserId(), m.HubId, m.District ?? string.Empty,
         m.Lines.Where(l => l.Quantity > 0)
             .Select(l => new OrderLineInput(l.MenuItemId, l.Quantity)).ToList(),
         m.PaymentMethod,
         string.IsNullOrWhiteSpace(m.VoucherCode) ? null : new[] { m.VoucherCode },
-        m.DeliveryAddress ?? string.Empty, m.HotelName ?? string.Empty, m.RoomNumber ?? string.Empty);
+        m.DeliveryAddress ?? string.Empty, m.HotelName ?? string.Empty, m.RoomNumber ?? string.Empty,
+        distanceKm);
 
     private List<CartInput> ReadCart()
     {

@@ -3,19 +3,31 @@
     ViewData["Title"] = L["MyOrdersTitle"];
 }
 
-@functions {
-    private string StatusText(OrderStatus status) => L["Status" + status].Value;
-}
+<div class="sb-page-head">
+    <h1>@L["MyOrdersTitle"]</h1>
+    <a asp-action="Hubs" class="btn btn-primary">@L["NavOrder"]</a>
+</div>
 
-<div class="row g-3">
-    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="h3 mb-0">@L["MyOrdersTitle"]</h1>
-        <a asp-action="Hubs" class="btn btn-primary">@L["NavOrder"]</a>
+@if (Model.Orders.Count == 0)
+{
+    <div class="sb-table-wrap">
+        <div class="sb-empty">
+            <partial name="_Scene" model='"empty-orders"' />
+            <strong>@L["NoOrders"]</strong>
+            <a asp-action="Hubs" class="btn btn-primary mt-2">@L["NavOrder"]</a>
+        </div>
     </div>
-
-    <div class="col-12">
+}
+else
+{
+    <div class="mb-3 col-md-4 px-0">
+        <label class="visually-hidden" for="order-filter">@L["Search"]</label>
+        <input class="form-control" id="order-filter" type="search" placeholder="@L["Search"]" autocomplete="off" />
+    </div>
+    <div class="sb-table-wrap">
         <div class="table-responsive">
-            <table class="table table-striped align-middle">
+            <table class="table align-middle sb-ordertable" id="orders-table" data-paginate="10" data-filter="#order-filter"
+                   data-prev-label="@L["Previous"]" data-next-label="@L["Next"]">
                 <thead>
                     <tr>
                         <th>@L["OrderNumber"]</th>
@@ -24,24 +36,20 @@
                         <th class="text-end">@L["OrderTotal"]</th>
                         <th class="text-center">@L["Lines"]</th>
                         <th>@L["Address"]</th>
-                        <th class="text-end">@L["View"]</th>
+                        <th class="text-end"><span class="visually-hidden">@L["View"]</span></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Orders.Count == 0)
-                    {
-                        <tr><td colspan="7" class="text-muted">@L["NoOrders"]</td></tr>
-                    }
                     @foreach (var order in Model.Orders)
                     {
-                        <tr>
-                            <td>@order.Id</td>
-                            <td>@order.PlacedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td><span class="badge bg-info text-dark">@StatusText(order.Status)</span></td>
-                            <td class="text-end">@order.Total.ToString("N0")</td>
-                            <td class="text-center">@order.LineCount</td>
-                            <td>@order.DeliveryAddress</td>
-                            <td class="text-end">
+                        <tr data-href="@Url.Action("Track", new { id = order.Id })">
+                            <td class="o-id"><span class="sb-ordtile" aria-hidden="true"><partial name="_Scene" model='"kitchen"' /></span><span class="fw-semibold">#@order.Id</span><small class="text-muted">@order.HubName</small></td>
+                            <td class="o-time text-nowrap">@order.PlacedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="o-status"><partial name="_StatusBadge" model="order.Status" /></td>
+                            <td class="o-total tabular">@order.Total.ToString("N0")&nbsp;₫</td>
+                            <td class="o-lines">@order.LineCount @L["CartItemsUnit"]</td>
+                            <td class="o-addr sb-wrap">@order.DeliveryAddress</td>
+                            <td class="o-go text-end">
                                 <a asp-action="Track" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">@L["View"]</a>
                             </td>
                         </tr>
@@ -50,4 +58,4 @@
             </table>
         </div>
     </div>
-</div>
+}

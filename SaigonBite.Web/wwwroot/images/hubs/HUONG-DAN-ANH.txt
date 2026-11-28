@@ -1,0 +1,3 @@
+Anh bep: dat ten theo Id bep: 1.jpg, 2.jpg, 3.jpg ... (nhan .jpg .jpeg .png .webp).
+Khuyen nghi: anh vuong hoac 4:3, khoang 600x450. Chua co anh thi web hien hinh ve san.
+Anh nay dung o trang Chon bep va dau trang Menu.

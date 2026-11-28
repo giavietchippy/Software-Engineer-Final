@@ -53,6 +53,10 @@ public sealed class CheckoutViewModel
     public bool IsTourist { get; set; }
     public string? Error { get; set; }
     public string? Notice { get; set; }
+    // Server-drawn distance for this checkout. DistanceKm is display-only and never trusted from a post;
+    // DistanceTicket is a Data Protection token the server verifies on Preview and Place.
+    public decimal DistanceKm { get; set; }
+    public string DistanceTicket { get; set; } = string.Empty;
 }
 
 public sealed class TrackViewModel

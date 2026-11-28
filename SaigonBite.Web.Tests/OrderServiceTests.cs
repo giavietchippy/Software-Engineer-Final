@@ -38,7 +38,8 @@ public sealed class OrderServiceTests : IDisposable
 
     private OrderService Service(PaymentContext? payments = null) =>
         new(_db, new PricingService(), payments ?? RealPayments(),
-            new SettingsService(_db, new FakeClock(ClockUtc)), new FakeClock(ClockUtc), new DistanceService());
+            new SettingsService(_db, new FakeClock(ClockUtc)), new FakeClock(ClockUtc),
+            FixedRandomSource.DistanceOf(3.2m));
 
     private static PaymentContext RealPayments() => new(new IPaymentStrategy[]
     {
@@ -152,7 +153,7 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Hub_load_counts_only_confirmed_and_preparing()
+    public async Task Hub_load_counts_placed_confirmed_and_preparing()
     {
         await AddBusyOrdersAsync(3, OrderStatus.Confirmed); // 30 % -> no quiet-kitchen discount
 
@@ -161,6 +162,7 @@ public sealed class OrderServiceTests : IDisposable
         Assert.Equal(225_000m, busyPreview.Breakdown!.Total);
 
         var seeded = await _db.Orders.ToListAsync();
+        // Placed still counts (1 / 10 = 10 %: quiet discount); Ready and Delivered do not.
         seeded[0].Status = OrderStatus.Placed;
         seeded[1].Status = OrderStatus.Ready;
         seeded[2].Status = OrderStatus.Delivered;
@@ -169,6 +171,46 @@ public sealed class OrderServiceTests : IDisposable
         var idlePreview = await Service().PreviewPriceAsync(Input());
         Assert.True(idlePreview.Accepted, idlePreview.Message);
         Assert.Equal(205_000m, idlePreview.Breakdown!.Total);
+        var card = Assert.Single(await Service().GetHubCardsAsync(), h => h.Id == 1);
+        Assert.Equal(1, card.Busy);
+    }
+
+    [Fact]
+    public async Task Placed_orders_raise_the_hub_load_shown_on_the_hub_card()
+    {
+        var before = Assert.Single(await Service().GetHubCardsAsync(), h => h.Id == 1);
+        Assert.Equal(0, before.Busy);
+
+        var placed = await Service().PlaceOrderAsync(Input());
+        Assert.True(placed.Accepted, placed.Message);
+
+        var after = Assert.Single(await Service().GetHubCardsAsync(), h => h.Id == 1);
+        Assert.Equal(1, after.Busy);
+        Assert.Equal(10, after.Capacity);
+        Assert.Equal(0.1m, after.Load);
+        Assert.True(after.IsQuiet);
+        Assert.False(after.IsBusy);
+
+        await AddBusyOrdersAsync(2, OrderStatus.Placed); // 3 / 10
+        var three = Assert.Single(await Service().GetHubCardsAsync(), h => h.Id == 1);
+        Assert.Equal(3, three.Busy);
+        Assert.Equal(0.3m, three.Load);
+        Assert.False(three.IsQuiet); // 30 % is no longer "quiet" (BR7)
+    }
+
+    [Fact]
+    public async Task Nine_Placed_orders_make_the_hub_busy_and_block_the_next_order()
+    {
+        await AddBusyOrdersAsync(9, OrderStatus.Placed); // 9 / 10 = 90 %
+        var card = Assert.Single(await Service().GetHubCardsAsync(), h => h.Id == 1);
+        Assert.True(card.IsBusy);
+        var before = await CountsAsync();
+
+        var outcome = await Service().PlaceOrderAsync(Input(lines: new[] { new OrderLineInput(1, 1) }));
+
+        Assert.False(outcome.Accepted);
+        Assert.Equal(RejectReason.HubBusy, outcome.RuleReason);
+        Assert.Equal(before, await CountsAsync());
     }
 
     [Fact]
@@ -186,16 +228,45 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Beyond_8_km_is_rejected_and_saves_nothing()
+    public async Task Beyond_10_km_is_rejected_and_saves_nothing()
     {
         await AddBusyOrdersAsync(2);
         var before = await CountsAsync();
 
-        var outcome = await Service().PlaceOrderAsync(Input(district: "District 7")); // 10.5 km
+        var outcome = await Service().PlaceOrderAsync(Input() with { DistanceKm = 10.1m });
 
         Assert.False(outcome.Accepted);
         Assert.Equal(RejectReason.OutOfCoverage, outcome.RuleReason);
         Assert.Equal(before, await CountsAsync());
+    }
+
+    [Fact]
+    public async Task Exactly_10_km_is_accepted_with_the_65000_delivery_fee()
+    {
+        await AddBusyOrdersAsync(2); // 20 % load: quiet discount 20,000
+
+        var outcome = await Service().PlaceOrderAsync(Input() with { DistanceKm = 10.0m });
+
+        Assert.True(outcome.Accepted, outcome.Message);
+        Assert.Equal(245_000m, outcome.Price!.Total); // 200,000 - 20,000 + 65,000
+        var order = await _db.Orders.AsNoTracking().SingleAsync(o => o.Id == outcome.OrderId);
+        Assert.Equal(10.0m, order.SnapshotDistanceKm);
+        Assert.Equal(65_000m, order.DeliveryFee);
+    }
+
+    [Fact]
+    public async Task Preview_and_place_use_the_same_distance_when_it_is_supplied()
+    {
+        await AddBusyOrdersAsync(2);
+        var input = Input() with { DistanceKm = 4.4m };
+
+        var preview = await Service().PreviewPriceAsync(input);
+        var placed = await Service().PlaceOrderAsync(input);
+
+        Assert.True(preview.Accepted, preview.Message);
+        Assert.True(placed.Accepted, placed.Message);
+        Assert.Equal(preview.Breakdown!.Total, placed.Price!.Total);
+        Assert.Equal(4.4m, (await _db.Orders.AsNoTracking().SingleAsync(o => o.Id == placed.OrderId)).SnapshotDistanceKm);
     }
 
     [Fact]

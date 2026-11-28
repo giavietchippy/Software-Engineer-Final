@@ -4,14 +4,18 @@
 }
 
 @functions {
-    private string Money(decimal value) => value.ToString("N0");
+    private string Money(decimal value) => value.ToString("N0") + "\u00A0₫";
 
     private string PaymentText(PaymentMethod method) => L["Payment" + method].Value;
 
     private string DistrictText(DistrictOption option) => L[option.LabelKey].Value;
 
+    private Microsoft.AspNetCore.Html.HtmlString Count(decimal value, string prefix = "") =>
+        new($"data-count=\"{value.ToString("0", System.Globalization.CultureInfo.InvariantCulture)}\" data-prefix=\"{prefix}\" data-suffix=\"\u00A0₫\"");
+
     private string ErrorText()
     {
+        if (Model.Error == "DistanceRecalculated") return L["ErrorDistanceRecalculated"].Value;
         if (Model.RejectReason is { } reason)
         {
             return reason switch
@@ -25,161 +29,206 @@
 
         return Model.Error ?? L["ErrorGeneric"].Value;
     }
+
+    private static string RowClass(decimal value, bool discount = false) =>
+        value == 0 ? "is-zero" : discount ? "is-discount" : string.Empty;
 }
 
-<div class="row g-3">
-    <div class="col-12">
-        <h1 class="h3 mb-1">@L["CheckoutTitle"]</h1>
-        <p class="text-muted mb-0">@L["CheckoutHub"]: <strong>@Model.HubId</strong></p>
+<div class="sb-page-head">
+    <div>
+        <h1>@L["CheckoutTitle"]</h1>
+        <p>@L["CheckoutHub"] #@Model.HubId</p>
     </div>
+    <a asp-controller="Order" asp-action="Menu" asp-route-hubId="@Model.HubId" class="btn btn-outline-secondary">@L["CheckoutBack"]</a>
+</div>
 
-    @if (!string.IsNullOrWhiteSpace(Model.Error))
-    {
-        <div class="col-12">
-            <div class="alert alert-danger" role="alert">@ErrorText()</div>
-        </div>
-    }
-    @if (Model.LineErrors.Count > 0)
-    {
-        <div class="col-12">
-            <div class="alert alert-danger" role="alert">
-                <div>@L["ErrorLineRules"]</div>
-                <ul class="mb-0">
-                    @foreach (var lineError in Model.LineErrors)
-                    {
-                        <li>@lineError</li>
-                    }
-                </ul>
-            </div>
-        </div>
-    }
-    @if (!Model.HasPaymentMethods)
-    {
-        <div class="col-12">
-            <div class="alert alert-warning" role="alert">@L["ErrorPayment"]</div>
-        </div>
-    }
+@if (!string.IsNullOrWhiteSpace(Model.Error))
+{
+    <div class="alert alert-danger" role="alert">@ErrorText()</div>
+}
+@if (Model.LineErrors.Count > 0)
+{
+    <div class="alert alert-danger" role="alert">
+        <div>@L["ErrorLineRules"]</div>
+        <ul class="mb-0">
+            @foreach (var lineError in Model.LineErrors)
+            {
+                <li>@lineError</li>
+            }
+        </ul>
+    </div>
+}
+@if (!Model.HasPaymentMethods)
+{
+    <div class="alert alert-warning" role="alert">@L["ErrorPayment"]</div>
+}
 
-    <form asp-action="Place" method="post" id="checkout-form" class="row g-3">
-        <input type="hidden" name="HubId" value="@Model.HubId" />
-        <input type="hidden" name="IsTourist" value="@Model.IsTourist" />
+<form asp-action="Place" method="post" id="checkout-form" class="sb-co">
+    <input type="hidden" name="HubId" value="@Model.HubId" />
+    <input type="hidden" name="IsTourist" value="@Model.IsTourist" />
+    @* A-06: opaque server-signed ticket. Plain input (not asp-for) so a stale posted value is never echoed. *@
+    <input type="hidden" name="DistanceTicket" value="@Model.DistanceTicket" />
 
-        <div class="col-12 col-lg-7">
-            <div class="card mb-3">
-                <div class="card-header h6 mb-0">@L["CartSummary"]</div>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col">@L["Item"]</th>
-                                <th scope="col">@L["Category"]</th>
-                                <th scope="col" class="text-end">@L["UnitPrice"]</th>
-                                <th scope="col" class="text-center">@L["Qty"]</th>
-                                <th scope="col" class="text-end">@L["LineTotal"]</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Lines.Count == 0)
-                            {
-                                <tr>
-                                    <td colspan="5" class="text-muted">@L["NoPreview"]</td>
-                                </tr>
-                            }
-                            @for (var i = 0; i < Model.Lines.Count; i++)
-                            {
-                                <tr>
-                                    <td>
-                                        @Model.Lines[i].Name
-                                        <input type="hidden" name="Lines[@i].MenuItemId" value="@Model.Lines[i].MenuItemId" />
-                                        <input type="hidden" name="Lines[@i].Name" value="@Model.Lines[i].Name" />
-                                        <input type="hidden" name="Lines[@i].Category" value="@Model.Lines[i].Category" />
-                                        <input type="hidden" name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" />
-                                    </td>
-                                    <td>@L["Category" + Model.Lines[i].Category]</td>
-                                    <td class="text-end">@Money(Model.Lines[i].UnitPrice)</td>
-                                    <td class="text-center">
-                                        <input class="form-control form-control-sm mx-auto" style="max-width:5rem"
-                                               type="number" min="1" max="20" step="1"
-                                               name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity" />
-                                    </td>
-                                    <td class="text-end">@Money(Model.Lines[i].UnitPrice * Model.Lines[i].Quantity)</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    @* Mobile order: address, items, voucher, payment, price summary. Desktop: two columns. *@
+    <div class="sb-co-col sb-co-left">
+        <div class="sb-co-addr">
+        <div class="card mb-3 sb-co-card">
+            <div class="card-header">@L["DeliveryAddress"]</div>
+            <div class="card-body row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="DeliveryAddress">@L["DeliveryAddress"]</label>
+                    <input class="form-control" id="DeliveryAddress" name="DeliveryAddress"
+                           value="@Model.DeliveryAddress" autocomplete="street-address" required />
                 </div>
-            </div>
-
-            <div class="card mb-3">
-                <div class="card-header h6 mb-0">@L["DeliveryAddress"]</div>
-                <div class="card-body row g-3">
-                    <div class="col-12">
-                        <label class="form-label" for="DeliveryAddress">@L["DeliveryAddress"]</label>
-                        <input class="form-control" id="DeliveryAddress" name="DeliveryAddress"
-                               value="@Model.DeliveryAddress" required />
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="District">@L["District"]</label>
+                    <select class="form-select" id="District" name="District" data-remember-district>
+                        @foreach (var district in Model.Districts)
+                        {
+                            <option value="@district.Value" selected="@(district.Value == Model.District ? "selected" : null)">
+                                @DistrictText(district)
+                            </option>
+                        }
+                    </select>
+                </div>
+                @if (Model.IsTourist)
+                {
+                    <div class="col-12"><h2 class="h6 mb-0">@L["TouristInfo"]</h2></div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="HotelName">@L["HotelName"]</label>
+                        <input class="form-control" id="HotelName" name="HotelName" value="@Model.HotelName" />
                     </div>
                     <div class="col-12 col-md-6">
-                        <label class="form-label" for="District">@L["District"]</label>
-                        <select class="form-select" id="District" name="District">
-                            @foreach (var district in Model.Districts)
-                            {
-                                <option value="@district.Value" selected="@(district.Value == Model.District ? "selected" : null)">
-                                    @DistrictText(district)
-                                </option>
-                            }
-                        </select>
+                        <label class="form-label" for="RoomNumber">@L["RoomNumber"]</label>
+                        <input class="form-control" id="RoomNumber" name="RoomNumber" value="@Model.RoomNumber" />
                     </div>
-                    @if (Model.IsTourist)
-                    {
-                        <div class="col-12"><h2 class="h6">@L["TouristInfo"]</h2></div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="HotelName">@L["HotelName"]</label>
-                            <input class="form-control" id="HotelName" name="HotelName" value="@Model.HotelName" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="RoomNumber">@L["RoomNumber"]</label>
-                            <input class="form-control" id="RoomNumber" name="RoomNumber" value="@Model.RoomNumber" />
-                        </div>
-                    }
-                    else
-                    {
-                        <input type="hidden" name="HotelName" value="@Model.HotelName" />
-                        <input type="hidden" name="RoomNumber" value="@Model.RoomNumber" />
-                    }
-                </div>
-            </div>
-
-            <div class="card mb-3">
-                <div class="card-header h6 mb-0">@L["VoucherCode"]</div>
-                <div class="card-body row g-2">
-                    <div class="col-12 col-md-8">
-                        <label class="form-label visually-hidden" for="VoucherCode">@L["VoucherCode"]</label>
-                        <input class="form-control" id="VoucherCode" name="VoucherCode" value="@Model.VoucherCode" />
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <button type="submit" formaction="@Url.Action("Preview")" class="btn btn-outline-primary w-100">
-                            @L["ApplyVoucher"]
-                        </button>
-                    </div>
-                </div>
+                }
+                else
+                {
+                    <input type="hidden" name="HotelName" value="@Model.HotelName" />
+                    <input type="hidden" name="RoomNumber" value="@Model.RoomNumber" />
+                }
             </div>
         </div>
 
-        <div class="col-12 col-lg-5">
-            <div class="card mb-3">
-                <div class="card-header h6 mb-0">@L["PriceBreakdown"]</div>
+        </div>
+        <div class="sb-co-items">
+        <div class="card mb-3 sb-co-card">
+            <div class="card-header">@L["CartSummary"]</div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">@L["Item"]</th>
+                            <th scope="col" class="text-end">@L["UnitPrice"]</th>
+                            <th scope="col" class="text-center">@L["Qty"]</th>
+                            <th scope="col" class="text-end">@L["LineTotal"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Lines.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="4">
+                                    <div class="sb-empty">
+                                        <partial name="_Scene" model='"empty-cart"' />
+                                        <strong>@L["CartEmptyTitle"]</strong>
+                                        <a asp-controller="Order" asp-action="Menu" asp-route-hubId="@Model.HubId">@L["CheckoutBack"]</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @for (var i = 0; i < Model.Lines.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                  <div class="sb-linecell">
+                                    <span class="sb-photo sb-photo-sm" data-img-base="/images/menu/@Model.Lines[i].MenuItemId" data-img-name="@Model.Lines[i].Name"><partial name="_FoodArt" model="Model.Lines[i].Category" /></span>
+                                    <div>
+                                        <div class="fw-semibold">@Model.Lines[i].Name</div>
+                                        <div class="small text-muted">@L["Category" + Model.Lines[i].Category]</div>
+                                    </div>
+                                  </div>
+                                    <input type="hidden" name="Lines[@i].MenuItemId" value="@Model.Lines[i].MenuItemId" />
+                                    <input type="hidden" name="Lines[@i].Name" value="@Model.Lines[i].Name" />
+                                    <input type="hidden" name="Lines[@i].Category" value="@Model.Lines[i].Category" />
+                                    <input type="hidden" name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" />
+                                </td>
+                                <td class="text-end tabular">@Money(Model.Lines[i].UnitPrice)</td>
+                                <td class="text-center">
+                                    <div class="sb-stepper mx-auto">
+                                        <button type="button" data-step="-1" aria-label="− @Model.Lines[i].Name">−</button>
+                                        <input type="number" min="1" max="20" step="1" inputmode="numeric"
+                                               name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity"
+                                               aria-label="@L["Qty"] - @Model.Lines[i].Name" />
+                                        <button type="button" data-step="1" aria-label="+ @Model.Lines[i].Name">+</button>
+                                    </div>
+                                </td>
+                                <td class="text-end tabular fw-semibold">@Money(Model.Lines[i].UnitPrice * Model.Lines[i].Quantity)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        </div>
+        <div class="sb-co-voucher">
+        <div class="card mb-3 sb-co-card">
+            <div class="card-header">@L["VoucherCode"]</div>
+            <div class="card-body row g-2">
+                <div class="col-12 col-md-8">
+                    <label class="form-label visually-hidden" for="VoucherCode">@L["VoucherCode"]</label>
+                    <input class="form-control" id="VoucherCode" name="VoucherCode" value="@Model.VoucherCode" autocomplete="off" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <button type="submit" formaction="@Url.Action("Preview")" class="btn btn-outline-primary w-100">
+                        @L["ApplyVoucher"]
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="sb-co-col sb-co-right">
+        <div class="sb-co-pay">
+            <div class="card mb-3 sb-co-card">
+                <div class="card-header">@L["PaymentMethod"]</div>
+                <div class="card-body">
+                    <p class="text-muted small">@L["SelectPayment"]</p>
+                    @foreach (var method in Model.PaymentMethods)
+                    {
+                        <label class="sb-pay" for="pay-@method">
+                            <input type="radio" name="PaymentMethod" id="pay-@method" value="@method"
+                                   checked="@(method == Model.PaymentMethod ? "checked" : null)" />
+                            <span class="sb-paylogo" data-img-base="/images/payments/@method.ToString().ToLowerInvariant()">
+                                <partial name="_PayArt" model="method" />
+                            </span>
+                            <span class="sb-payname">@PaymentText(method)</span>
+                            <svg class="sb-paytick" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </label>
+                    }
+                </div>
+            </div>
+
+        </div>
+        <div class="sb-co-price sb-price-card">
+            <div class="card mb-3 sb-co-card">
+                <div class="card-header">@L["PriceBreakdown"]</div>
                 <div class="card-body">
                     @if (Model.Breakdown is { } price)
                     {
-                        <dl class="row mb-0">
-                            <dt class="col-7">@L["Subtotal"]</dt><dd class="col-5 text-end">@Money(price.Subtotal)</dd>
-                            <dt class="col-7">@L["QuietDiscount"]</dt><dd class="col-5 text-end">-@Money(price.QuietDiscount)</dd>
-                            <dt class="col-7">@L["VoucherDiscount"]</dt><dd class="col-5 text-end">-@Money(price.VoucherDiscount)</dd>
-                            <dt class="col-7">@L["DeliveryFee"]</dt><dd class="col-5 text-end">@Money(price.DeliveryFee)</dd>
-                            <dt class="col-7">@L["RushSurcharge"]</dt><dd class="col-5 text-end">@Money(price.RushSurcharge)</dd>
-                            <dt class="col-7">@L["RainSurcharge"]</dt><dd class="col-5 text-end">@Money(price.RainSurcharge)</dd>
-                            <dt class="col-7 fs-5 fw-bold">@L["Total"]</dt><dd class="col-5 text-end fs-5 fw-bold">@Money(price.Total)</dd>
+                        <dl class="mb-0">
+                            <div class="sb-price-row" id="sb-distance-row"><dt>@L["Distance"]</dt><dd data-count="@Model.DistanceKm.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)" data-decimals="1" data-suffix=" km">@Model.DistanceKm.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) km</dd></div>
+                            <div class="sb-price-row"><dt>@L["Subtotal"]</dt><dd @Count(price.Subtotal)>@Money(price.Subtotal)</dd></div>
+                            <div class="sb-price-row @RowClass(price.QuietDiscount, true)"><dt>@L["QuietDiscount"]</dt><dd @Count(price.QuietDiscount, "-")>-@Money(price.QuietDiscount)</dd></div>
+                            <div class="sb-price-row @RowClass(price.VoucherDiscount, true)"><dt>@L["VoucherDiscount"]</dt><dd @Count(price.VoucherDiscount, "-")>-@Money(price.VoucherDiscount)</dd></div>
+                            <div class="sb-price-row"><dt>@L["DeliveryFee"]</dt><dd @Count(price.DeliveryFee)>@Money(price.DeliveryFee)</dd></div>
+                            <div class="sb-price-row @RowClass(price.RushSurcharge)"><dt>@L["RushSurcharge"]</dt><dd @Count(price.RushSurcharge)>@Money(price.RushSurcharge)</dd></div>
+                            <div class="sb-price-row @RowClass(price.RainSurcharge)"><dt>@L["RainSurcharge"]</dt><dd @Count(price.RainSurcharge)>@Money(price.RainSurcharge)</dd></div>
                         </dl>
+                        <div class="sb-price-total"><span>@L["Total"]</span><span @Count(price.Total)>@Money(price.Total)</span></div>
                         @if (!string.IsNullOrWhiteSpace(price.VoucherNote))
                         {
                             <div class="alert alert-warning small mt-3 mb-0" role="alert">
@@ -191,34 +240,20 @@
                     {
                         <div class="alert alert-info mb-0" role="alert">@L["NoPreview"]</div>
                     }
+                    <div class="sb-stale" id="sb-stale" role="status">@L["PriceStale"]</div>
                 </div>
             </div>
 
-            <div class="card mb-3">
-                <div class="card-header h6 mb-0">@L["PaymentMethod"]</div>
-                <div class="card-body">
-                    <p class="text-muted small">@L["SelectPayment"]</p>
-                    @foreach (var method in Model.PaymentMethods)
-                    {
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="PaymentMethod"
-                                   id="pay-@method" value="@method"
-                                   checked="@(method == Model.PaymentMethod ? "checked" : null)" />
-                            <label class="form-check-label" for="pay-@method">@PaymentText(method)</label>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <div class="d-grid gap-2">
-                <button type="submit" formaction="@Url.Action("Place")" class="btn btn-success btn-lg"
-                        disabled="@(Model.HasPaymentMethods ? null : "disabled")">
-                    @L["PlaceOrder"]
-                </button>
-                <a asp-controller="Order" asp-action="Menu" asp-route-hubId="@Model.HubId" class="btn btn-outline-secondary">
-                    @L["CheckoutBack"]
-                </a>
-            </div>
         </div>
-    </form>
-</div>
+        <div class="sb-placebar">
+            <div class="sb-placetotal">
+                <small>@L["Total"]</small>
+                <strong>@(Model.Breakdown is { } placePrice ? Money(placePrice.Total) : "—")</strong>
+            </div>
+            <button type="submit" formaction="@Url.Action("Place")" class="btn btn-primary btn-lg"
+                    disabled="@(Model.HasPaymentMethods ? null : "disabled")">
+                @L["PlaceOrder"]
+            </button>
+        </div>
+    </div>
+</form>

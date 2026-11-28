@@ -78,7 +78,9 @@ if (!builder.Environment.IsProduction() && DemoClock.TryCreate(fixedClockSetting
     builder.Services.AddSingleton<IClock>(fixedClock!);
 else
     builder.Services.AddSingleton<IClock, SystemClock>();
-builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: deterministic demo distances
+builder.Services.AddSingleton<IRandomSource, SystemRandomSource>();     // A-06: injectable randomness
+builder.Services.AddSingleton<IDistanceService, DistanceService>();    // A-06: random 0.5-10.0 km
+builder.Services.AddSingleton<CheckoutDistanceService>();              // A-06: one signed distance per checkout
 builder.Services.AddSingleton<IDistrictCatalog, DistrictCatalog>();    // FR-C3 dropdown source
 builder.Services.AddScoped<CustomerCatalogService>();                 // FR-C1/C2 catalog reads
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12

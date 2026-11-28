@@ -1,0 +1,2 @@
+Anh banner trang chu: dat ten hero.jpg (hoac hero.png / hero.webp) trong thu muc nay.
+Khuyen nghi: anh ngang 1600x700, dung luong duoi 400 KB. Chua co anh thi web hien nen gradient + hinh ve.

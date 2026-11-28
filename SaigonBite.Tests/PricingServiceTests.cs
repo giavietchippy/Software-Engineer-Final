@@ -28,6 +28,10 @@ public class PricingServiceTests
         { "T-02", 50_000m,  0.50m, 1.0m,  "15:00", false, 65_000m },   // BR1 boundary
         { "T-03", 100_000m, 0.50m, 1.0m,  "15:00", false, 115_000m },  // base case
         { "T-04", 100_000m, 0.50m, 8.0m,  "15:00", false, 151_000m },  // BR2/BR3 boundary 8.0 km
+        { "T-04a", 100_000m, 0.50m, 8.01m, "15:00", false, 158_000m }, // BR3: 8-10 km band, +7,000 per started km
+        { "T-04b", 100_000m, 0.50m, 9.0m,  "15:00", false, 158_000m },
+        { "T-04c", 100_000m, 0.50m, 9.01m, "15:00", false, 165_000m },
+        { "T-04d", 100_000m, 0.50m, 10.0m, "15:00", false, 165_000m }, // BR2 boundary: exactly 10.0 km is accepted
         { "T-06", 100_000m, 0.50m, 2.0m,  "15:00", false, 115_000m },  // BR3
         { "T-07", 100_000m, 0.50m, 2.01m, "15:00", false, 120_000m },
         { "T-08", 100_000m, 0.50m, 5.0m,  "15:00", false, 130_000m },
@@ -69,7 +73,7 @@ public class PricingServiceTests
     public static TheoryData<string, decimal, decimal, decimal, RejectReason> RejectedCases => new()
     {
         { "T-01", 49_999m,  0.50m, 1.0m,  RejectReason.BelowMinimum },   // BR1
-        { "T-05", 100_000m, 0.50m, 8.01m, RejectReason.OutOfCoverage },  // BR2
+        { "T-05", 100_000m, 0.50m, 10.01m, RejectReason.OutOfCoverage }, // BR2: more than 10 km
         { "T-27", 100_000m, 0.90m, 1.0m,  RejectReason.HubBusy },        // BR8
         { "T-28", 100_000m, 1.00m, 1.0m,  RejectReason.HubBusy },
     };
@@ -82,6 +86,28 @@ public class PricingServiceTests
         Assert.False(result.Accepted, id);
         Assert.Equal(expected, result.Reason);
         Assert.Null(result.Breakdown);
+    }
+
+    [Fact]
+    public void Delivery_radius_is_10_km()
+    {
+        Assert.Equal(10.0m, PricingService.MaxDistanceKm);
+    }
+
+    [Theory]
+    [InlineData(0.5, 15_000)]
+    [InlineData(2.0, 15_000)]
+    [InlineData(2.1, 20_000)]
+    [InlineData(5.0, 30_000)]
+    [InlineData(5.1, 37_000)]
+    [InlineData(8.0, 51_000)]
+    [InlineData(8.1, 58_000)]
+    [InlineData(9.0, 58_000)]
+    [InlineData(9.1, 65_000)]
+    [InlineData(10.0, 65_000)]
+    public void Delivery_fee_per_distance_band(double km, int expectedFee)
+    {
+        Assert.Equal((decimal)expectedFee, PricingService.DeliveryFee((decimal)km));
     }
 
     // ----- BR9 vouchers (facts, so each test shows its ID in Test Explorer) -----

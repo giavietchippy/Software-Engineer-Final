@@ -1,0 +1,74 @@
+@* Decorative animated scenes (pure SVG + CSS). The model is the scene name; every scene is aria-hidden. *@
+@model string
+@switch (Model)
+{
+    case "bowl":
+        <svg class="sb-scene sb-scene-bowl" viewBox="0 0 220 190" focusable="false" aria-hidden="true">
+            <g class="sb-steam" fill="none" stroke="#E7B9A6" stroke-width="5" stroke-linecap="round"><path d="M78 60c-8-10 8-16 0-28"/><path d="M110 58c-8-10 8-16 0-28" style="animation-delay:.6s"/><path d="M142 60c-8-10 8-16 0-28" style="animation-delay:1.2s"/></g>
+            <g class="sb-chopsticks" stroke="#8A5A3C" stroke-width="5" stroke-linecap="round"><path d="M150 20l-52 66"/><path d="M164 28l-56 62"/></g>
+            <path d="M30 88h160c0 42-34 76-80 76S30 130 30 88z" fill="#fff" stroke="#D43B10" stroke-width="5"/>
+            <path d="M44 88c10-22 122-22 132 0z" fill="#F6C65B"/>
+            <circle cx="84" cy="80" r="6" fill="#7BB661"/><circle cx="128" cy="78" r="6" fill="#7BB661"/><circle cx="106" cy="74" r="5" fill="#D43B10"/>
+        </svg>
+        break;
+    case "coffee":
+        <svg class="sb-scene sb-scene-coffee" viewBox="0 0 120 130" focusable="false" aria-hidden="true">
+            <rect x="20" y="8" width="80" height="34" rx="10" fill="#8A5A3C"/>
+            <rect class="sb-drip" x="58" y="42" width="5" height="12" rx="2.5" fill="#5A3A26"/>
+            <rect class="sb-drip" x="58" y="42" width="5" height="12" rx="2.5" fill="#5A3A26" style="animation-delay:.7s"/>
+            <path d="M26 72h60v26a22 22 0 0 1-22 22H48a22 22 0 0 1-22-22z" fill="#fff" stroke="#D43B10" stroke-width="5"/>
+            <path d="M86 80h8a10 10 0 0 1 0 20h-8" fill="none" stroke="#D43B10" stroke-width="5"/>
+            <rect x="32" y="78" width="48" height="8" rx="4" fill="#8A5A3C"/>
+        </svg>
+        break;
+    case "courier":
+        <svg class="sb-scene sb-scene-courier" viewBox="0 0 240 110" focusable="false" aria-hidden="true">
+            <g class="sb-road"><path d="M-40 96h320" stroke="#E2E0DB" stroke-width="4"/><path d="M-40 96h320" stroke="#fff" stroke-width="4" stroke-dasharray="14 18"/></g>
+            <g class="sb-courier-bike">
+                <rect x="92" y="34" width="34" height="30" rx="5" fill="#D43B10"/><path d="M100 34v-6h18v6" stroke="#8F2A09" stroke-width="3" fill="none"/>
+                <circle cx="104" cy="82" r="12" fill="#fff" stroke="#201C19" stroke-width="4"/><circle cx="152" cy="82" r="12" fill="#fff" stroke="#201C19" stroke-width="4"/>
+                <path d="M104 82l16-22h20l12 22M128 60l8-14h10" stroke="#201C19" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="132" cy="38" r="7" fill="#F6C65B"/>
+            </g>
+            <g class="sb-speed" stroke="#E7B9A6" stroke-width="4" stroke-linecap="round"><path d="M30 50h26"/><path d="M14 66h30"/><path d="M40 80h22"/></g>
+        </svg>
+        break;
+    case "pan":
+        <svg class="sb-scene sb-scene-pan" viewBox="0 0 110 80" focusable="false" aria-hidden="true">
+            <g class="sb-steam" fill="none" stroke="#E7B9A6" stroke-width="4" stroke-linecap="round"><path d="M38 24c-6-8 6-12 0-20"/><path d="M58 24c-6-8 6-12 0-20" style="animation-delay:.5s"/></g>
+            <g class="sb-pan-body"><ellipse cx="48" cy="48" rx="32" ry="12" fill="#3A3633"/><ellipse cx="48" cy="44" rx="26" ry="8" fill="#F6C65B"/><circle cx="48" cy="43" r="6" fill="#fff"/><path d="M78 46h28" stroke="#3A3633" stroke-width="7" stroke-linecap="round"/></g>
+        </svg>
+        break;
+    case "check":
+        <svg class="sb-scene sb-scene-check" viewBox="0 0 80 80" focusable="false" aria-hidden="true">
+            <circle class="sb-check-ring" cx="40" cy="40" r="33" fill="none" stroke="#1F8A4D" stroke-width="5"/>
+            <path class="sb-check-tick" d="M24 41l11 11 21-24" fill="none" stroke="#1F8A4D" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        break;
+    case "kitchen":
+        <svg class="sb-scene sb-scene-kitchen" viewBox="0 0 40 40" focusable="false" aria-hidden="true">
+            <g class="sb-smoke" fill="none" stroke="#C9C5BE" stroke-width="2.5" stroke-linecap="round"><path d="M14 12c-3-4 3-6 0-10"/><path d="M22 12c-3-4 3-6 0-10" style="animation-delay:.5s"/><path d="M30 12c-3-4 3-6 0-10" style="animation-delay:1s"/></g>
+            <path d="M6 18h28v4a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4z" fill="#D43B10"/><path d="M10 26h20v8a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3z" fill="#8F2A09"/>
+        </svg>
+        break;
+    case "empty-cart":
+        <svg class="sb-scene sb-scene-empty" viewBox="0 0 120 100" focusable="false" aria-hidden="true">
+            <g class="sb-float"><path d="M14 20h14l10 46h48l8-32H34" fill="none" stroke="#B5B1AA" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="46" cy="80" r="6" fill="#B5B1AA"/><circle cx="80" cy="80" r="6" fill="#B5B1AA"/><path d="M52 44h26" stroke="#E7B9A6" stroke-width="5" stroke-linecap="round"/></g>
+        </svg>
+        break;
+    case "empty-orders":
+        <svg class="sb-scene sb-scene-empty" viewBox="0 0 120 100" focusable="false" aria-hidden="true">
+            <g class="sb-float"><rect x="28" y="10" width="64" height="80" rx="8" fill="#fff" stroke="#B5B1AA" stroke-width="5"/><path d="M42 34h36M42 50h36M42 66h20" stroke="#E7B9A6" stroke-width="5" stroke-linecap="round"/></g>
+        </svg>
+        break;
+    case "lost":
+        <svg class="sb-scene sb-scene-lost" viewBox="0 0 120 100" focusable="false" aria-hidden="true">
+            <g class="sb-wobble"><path d="M20 50h80c0 24-18 40-40 40S20 74 20 50z" fill="#fff" stroke="#D43B10" stroke-width="5"/><path d="M34 40h52" stroke="#F6C65B" stroke-width="8" stroke-linecap="round"/><circle cx="46" cy="64" r="4" fill="#201C19"/><circle cx="74" cy="64" r="4" fill="#201C19"/><path d="M50 78q10-8 20 0" fill="none" stroke="#201C19" stroke-width="4" stroke-linecap="round"/></g>
+        </svg>
+        break;
+    case "lock":
+        <svg class="sb-scene sb-scene-lock" viewBox="0 0 100 100" focusable="false" aria-hidden="true">
+            <g class="sb-wobble"><path class="sb-shackle" d="M32 44V32a18 18 0 0 1 36 0v12" fill="none" stroke="#B5B1AA" stroke-width="7" stroke-linecap="round"/><rect x="22" y="44" width="56" height="42" rx="9" fill="#D43B10"/><circle cx="50" cy="63" r="6" fill="#fff"/></g>
+        </svg>
+        break;
+}

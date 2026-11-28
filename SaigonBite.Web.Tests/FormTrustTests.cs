@@ -24,9 +24,11 @@ public sealed class FormTrustTests : IDisposable
     {
         using var client = await WebForms.LoginAsync(_harness, "0912345678", "Local@123");
         var token = await WebForms.TokenFromAsync(client, "/Order/Hubs");
+        var ticket = await WebForms.TicketFromAsync(client);
 
         var response = await client.PostAsync("/Order/Place", WebForms.CheckoutPost(
             token,
+            distanceTicket: ticket,
             paymentMethod: "Cod",
             touristClaimForgery: true, // posted IsTourist=true and Role=Tourist are ignored
             tamperedFields: new Dictionary<string, string>
@@ -87,9 +89,11 @@ public sealed class FormTrustTests : IDisposable
     {
         using var client = await WebForms.LoginAsync(_harness, identifier, password);
         var token = await WebForms.TokenFromAsync(client, "/Order/Hubs");
+        var ticket = await WebForms.TicketFromAsync(client);
 
         var response = await client.PostAsync("/Order/Place", WebForms.CheckoutPost(
             token,
+            distanceTicket: ticket,
             paymentMethod: paymentMethod,
             touristClaimForgery: claimTourist,
             tamperedFields: new Dictionary<string, string>
@@ -106,5 +110,48 @@ public sealed class FormTrustTests : IDisposable
         using var db = _harness.NewContext();
         Assert.Empty(await db.Orders.ToListAsync());
         Assert.Empty(await db.Payments.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Posted_km_field_is_ignored_the_signed_ticket_decides_the_distance()
+    {
+        using var client = await WebForms.LoginAsync(_harness, "0912345678", "Local@123");
+        var token = await WebForms.TokenFromAsync(client, "/Order/Hubs");
+        var ticket = await WebForms.TicketFromAsync(client);
+
+        var response = await client.PostAsync("/Order/Place", WebForms.CheckoutPost(
+            token,
+            distanceTicket: ticket,
+            tamperedFields: new Dictionary<string, string>
+            {
+                ["DistanceKm"] = "0.5",
+                ["SnapshotDistanceKm"] = "0.5",
+                ["Breakdown.DeliveryFee"] = "0"
+            }));
+
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+        using var db = _harness.NewContext();
+        var saved = await db.Orders.SingleAsync();
+        Assert.Equal(3.2m, saved.SnapshotDistanceKm);
+        Assert.Equal(25_000m, saved.DeliveryFee);
+    }
+
+    [Theory]
+    [InlineData(null)]                       // no ticket at all
+    [InlineData("not-a-real-ticket")]        // forged / garbage ticket
+    public async Task Place_without_a_valid_distance_ticket_saves_nothing(string? forged)
+    {
+        using var client = await WebForms.LoginAsync(_harness, "0912345678", "Local@123");
+        var token = await WebForms.TokenFromAsync(client, "/Order/Hubs");
+
+        var response = await client.PostAsync("/Order/Place",
+            WebForms.CheckoutPost(token, distanceTicket: forged));
+
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("alert-danger", html);
+        Assert.Contains("DistanceTicket", html); // a fresh ticket is issued for the retry
+        using var db = _harness.NewContext();
+        Assert.Empty(await db.Orders.ToListAsync());
     }
 }

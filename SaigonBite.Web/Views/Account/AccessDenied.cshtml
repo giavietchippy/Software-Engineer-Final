@@ -1,5 +1,11 @@
 @{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = L["DeniedTitle"];
 }
-<h1>Access denied</h1>
-<p>Your role is not allowed to open this page. <a asp-controller="Home" asp-action="Index">Return home</a>.</p>
+<div class="sb-auth">
+    <div class="sb-auth-art" aria-hidden="true"><partial name="_Scene" model='"lock"' /></div>
+    <div class="card">
+        <h1>@L["DeniedTitle"]</h1>
+        <p class="text-muted">@L["DeniedText"]</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary align-self-start">@L["DeniedBack"]</a>
+    </div>
+</div>

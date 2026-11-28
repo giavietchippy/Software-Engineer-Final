@@ -7,13 +7,35 @@ namespace SaigonBite.Tests;
 public class HubAndLineRuleTests
 {
     [Fact]
-    public void T29_only_confirmed_and_preparing_orders_count_towards_load()
+    public void T29_placed_confirmed_and_preparing_orders_count_towards_load()
     {
         var statuses = Enumerable.Repeat(OrderStatus.Confirmed, 25)
             .Concat(Enumerable.Repeat(OrderStatus.Preparing, 5))
             .Concat(Enumerable.Repeat(OrderStatus.Placed, 40))
             .Concat(Enumerable.Repeat(OrderStatus.Ready, 20));
-        Assert.Equal(0.30m, HubLoad.FromStatuses(statuses, 100));
+        // 25 Confirmed + 5 Preparing + 40 Placed = 70; Ready does not count.
+        Assert.Equal(0.70m, HubLoad.FromStatuses(statuses, 100));
+    }
+
+    [Fact]
+    public void A_new_Placed_order_raises_the_load()
+    {
+        Assert.Equal(0.0m, HubLoad.FromStatuses(Array.Empty<OrderStatus>(), 10));
+        Assert.Equal(0.3m, HubLoad.FromStatuses(Enumerable.Repeat(OrderStatus.Placed, 3), 10)); // 3 / 10
+    }
+
+    [Theory]
+    [InlineData(OrderStatus.Placed, true)]
+    [InlineData(OrderStatus.Confirmed, true)]
+    [InlineData(OrderStatus.Preparing, true)]
+    [InlineData(OrderStatus.Ready, false)]
+    [InlineData(OrderStatus.OutForDelivery, false)]
+    [InlineData(OrderStatus.Delivered, false)]
+    [InlineData(OrderStatus.Cancelled, false)]
+    [InlineData(OrderStatus.Failed, false)]
+    public void Only_Placed_Confirmed_Preparing_count_towards_load(OrderStatus status, bool counts)
+    {
+        Assert.Equal(counts ? 0.1m : 0m, HubLoad.FromStatuses(new[] { status }, 10));
     }
 
     [Fact]

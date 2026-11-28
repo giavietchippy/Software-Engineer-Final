@@ -1,0 +1,12 @@
+THU MUC ANH MON AN
+Bo anh that vao thu muc nay. Co 2 cach dat ten file (chon 1):
+
+ Cach 1 - theo Id mon:        1.jpg  2.jpg  3.jpg  4.jpg  5.jpg  6.jpg
+ Cach 2 - theo ten mon:       pho-bo.jpg  com-tam.jpg  ca-phe-sua-da.jpg
+                              ca-phe-den.jpg  che-ba-mau.jpg  che-dau-xanh.jpg
+
+Dinh dang: .jpg .jpeg .png .webp
+Ten mon: viet thuong, khong dau, noi bang dau gach ngang (vi du "Ca Phe Sua Da" -> ca-phe-sua-da.jpg).
+Mon them sau nay: dung Id cua mon hoac ten mon theo quy tac tren.
+Chua co anh thi web tu hien hinh ve san. Chep xong chi can Ctrl+F5, khong can build lai.
+Khuyen nghi: anh vuong, khoang 600x600, dung luong duoi 300 KB.

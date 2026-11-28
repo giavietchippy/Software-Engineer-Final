@@ -1,86 +1,149 @@
-﻿@{
+@{
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var controller = (ViewContext.RouteData.Values["controller"] as string ?? string.Empty);
+    var action = (ViewContext.RouteData.Values["action"] as string ?? string.Empty);
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var isCustomer = signedIn && (User.IsInRole("Local") || User.IsInRole("Tourist"));
+    var isAdmin = signedIn && User.IsInRole("Admin");
+    var adminShell = isAdmin && controller == "Admin";
+    var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    string Active(string c, string? a = null) =>
+        controller == c && (a is null || action == a) ? "active" : string.Empty;
+    string? Current(string c, string? a = null) =>
+        controller == c && (a is null || action == a) ? "page" : null;
+
+    // Mobile bottom tab bar (replaces the hamburger menu below 576px).
+    var tabs = new List<(string Label, string Url, string Icon, bool Active)>
+    {
+        ("NavHome", Url.Action("Index", "Home") ?? "/", "home", controller == "Home" && action == "Index")
+    };
+    if (isCustomer)
+    {
+        tabs.Add(("NavOrder", Url.Action("Hubs", "Order") ?? "/", "order", controller == "Order" && action != "MyOrders" && action != "Track" && action != "Edit"));
+        tabs.Add(("NavMyOrders", Url.Action("MyOrders", "Order") ?? "/", "orders", controller == "Order" && (action == "MyOrders" || action == "Track" || action == "Edit")));
+    }
+    else if (isAdmin)
+    {
+        tabs.Add(("NavDashboard", Url.Action("Dashboard", "Admin") ?? "/", "dash", controller == "Admin"));
+    }
+    if (signedIn)
+    {
+        tabs.Add(("NavProfile", Url.Action("Profile", "Account") ?? "/", "user", controller == "Account" && action == "Profile"));
+    }
+    else
+    {
+        tabs.Add(("NavLogin", Url.Action("Login", "Account") ?? "/", "user", controller == "Account" && action == "Login"));
+        tabs.Add(("NavRegister", Url.Action("Register", "Account") ?? "/", "plus", controller == "Account" && action == "Register"));
+    }
+    var tabIndex = tabs.FindIndex(t => t.Active);
 }
 <!DOCTYPE html>
-<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<html lang="@lang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - @L["NavBrand"]</title>
     <script type="importmap"></script>
+    @* Progressive enhancement: motion styles only apply when this class is set. If site.js fails to
+       start within 3 s the failsafe class shows everything again, so content is never stuck hidden. *@
+    <script>document.documentElement.classList.add('js');setTimeout(function(){if(!window.__sbMotionReady)document.documentElement.classList.add('sb-no-motion');},3000);</script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SaigonBite.Web.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold text-danger" asp-area="" asp-controller="Home" asp-action="Index">@L["NavBrand"]</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="@L["Language"]">
+    <div class="sb-progress" id="sb-progress" aria-hidden="true"><span></span></div>
+    <div class="sb-bg" aria-hidden="true">
+        <span class="sb-blob sb-blob-1"></span><span class="sb-blob sb-blob-2"></span><span class="sb-blob sb-blob-3"></span>
+        <span class="sb-float-ico sb-fi-1"></span><span class="sb-float-ico sb-fi-2"></span><span class="sb-float-ico sb-fi-3"></span><span class="sb-float-ico sb-fi-4"></span>
+    </div>
+    <header class="sb-header">
+        <nav class="navbar navbar-expand-sm sb-nav">
+            <div class="container-fluid px-3 px-md-4">
+                <a class="sb-brand" asp-area="" asp-controller="Home" asp-action="Index">Saigon<span class="sb-brand-mark">Bite</span></a>
+                <div class="sb-mobile-tools d-sm-none">
+                    <div class="sb-lang" role="group" aria-label="@L["Language"]">
+                        <form asp-controller="Localization" asp-action="Set" method="post">
+                            <input type="hidden" name="culture" value="en" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button type="submit" aria-current="@(lang == "en" ? "true" : "false")">@L["English"]</button>
+                        </form>
+                        <form asp-controller="Localization" asp-action="Set" method="post">
+                            <input type="hidden" name="culture" value="vi" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button type="submit" aria-current="@(lang == "vi" ? "true" : "false")">@L["Vietnamese"]</button>
+                        </form>
+                    </div>
+                    @if (signedIn)
+                    {
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            <button type="submit" class="sb-logout">@L["NavLogout"]</button>
+                        </form>
+                    }
+                </div>
+                <button class="navbar-toggler d-none" type="button" data-bs-toggle="collapse" data-bs-target="#sb-nav-links"
+                        aria-controls="sb-nav-links" aria-expanded="false" aria-label="@L["NavMenu"]">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse justify-content-between" id="sb-nav-links">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">@L["NavHome"]</a>
+                            <a class="nav-link @Active("Home", "Index")" aria-current="@(Current("Home", "Index"))" asp-controller="Home" asp-action="Index">@L["NavHome"]</a>
                         </li>
-                        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Local") || User.IsInRole("Tourist")))
+                        @if (isCustomer)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Order" asp-action="Hubs">@L["NavOrder"]</a>
+                                <a class="nav-link @(controller == "Order" && action != "MyOrders" && action != "Track" && action != "Edit" ? "active" : "")" asp-controller="Order" asp-action="Hubs">@L["NavOrder"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Order" asp-action="MyOrders">@L["NavMyOrders"]</a>
+                                <a class="nav-link @(controller == "Order" && (action == "MyOrders" || action == "Track" || action == "Edit") ? "active" : "")" asp-controller="Order" asp-action="MyOrders">@L["NavMyOrders"]</a>
                             </li>
                         }
-                        @if (User.IsInRole("Admin"))
+                        @if (isAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Dashboard">@L["NavDashboard"]</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Accounts">@L["NavAccounts"]</a>
+                                <a class="nav-link @Active("Admin")" asp-controller="Admin" asp-action="Dashboard">@L["NavAdmin"]</a>
                             </li>
                         }
-                        @if (User.Identity?.IsAuthenticated == true)
+                        @if (signedIn)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">@L["NavProfile"]</a>
+                                <a class="nav-link @Active("Account", "Profile")" asp-controller="Account" asp-action="Profile">@L["NavProfile"]</a>
                             </li>
                         }
                     </ul>
-                    <ul class="navbar-nav align-items-sm-center">
-                        <li class="nav-item me-sm-2">
-                            <div class="d-flex align-items-center" role="group" aria-label="@L["Language"]">
-                                <form asp-controller="Localization" asp-action="Set" method="post" class="d-inline me-1">
+                    <ul class="navbar-nav align-items-sm-center gap-sm-3 pb-2 pb-sm-0">
+                        <li class="nav-item">
+                            <div class="sb-lang" role="group" aria-label="@L["Language"]">
+                                <form asp-controller="Localization" asp-action="Set" method="post">
                                     <input type="hidden" name="culture" value="en" />
                                     <input type="hidden" name="returnUrl" value="@returnUrl" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@L["English"]</button>
+                                    <button type="submit" aria-current="@(lang == "en" ? "true" : "false")">@L["English"]</button>
                                 </form>
-                                <form asp-controller="Localization" asp-action="Set" method="post" class="d-inline">
+                                <form asp-controller="Localization" asp-action="Set" method="post">
                                     <input type="hidden" name="culture" value="vi" />
                                     <input type="hidden" name="returnUrl" value="@returnUrl" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@L["Vietnamese"]</button>
+                                    <button type="submit" aria-current="@(lang == "vi" ? "true" : "false")">@L["Vietnamese"]</button>
                                 </form>
                             </div>
                         </li>
-                        @if (User.Identity?.IsAuthenticated == true)
+                        @if (signedIn)
                         {
-                            <li class="nav-item">
+                            <li class="nav-item d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                                <span class="sb-user">@User.Identity!.Name</span>
                                 <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-link nav-link text-dark">@L["NavLogout"] (@User.Identity.Name)</button>
+                                    <button type="submit" class="sb-logout">@L["NavLogout"]</button>
                                 </form>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">@L["NavLogin"]</a>
+                                <a class="nav-link @Active("Account", "Login")" asp-controller="Account" asp-action="Login">@L["NavLogin"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">@L["NavRegister"]</a>
+                                <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">@L["NavRegister"]</a>
                             </li>
                         }
                     </ul>
@@ -88,17 +151,86 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
+
+    <div class="container-xl px-3 px-md-4 py-4 sb-main">
+        <main role="main" class="sb-page">
+            @if (adminShell)
+            {
+                <div class="sb-shell">
+                    <aside class="sb-side" aria-label="@L["NavAdmin"]">
+                        <p class="sb-side-title">@L["NavAdmin"]</p>
+                        <a class="@Active("Admin", "Dashboard")" aria-current="@(Current("Admin", "Dashboard"))" asp-controller="Admin" asp-action="Dashboard">@L["NavDashboard"]</a>
+                        <a class="@Active("Admin", "Accounts")" aria-current="@(Current("Admin", "Accounts"))" asp-controller="Admin" asp-action="Accounts">@L["NavAccounts"]</a>
+                    </aside>
+                    <div>@RenderBody()</div>
+                </div>
+            }
+            else
+            {
+                @RenderBody()
+            }
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            @L["Footer"] - <a asp-area="" asp-controller="Home" asp-action="Privacy">@L["NavPrivacy"]</a>
+    <footer class="sb-footer">
+        <div class="container-xl px-3 px-md-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><span class="sb-footer-brand">Saigon<span class="sb-brand-mark">Bite</span></span> <span class="sb-footer-sep" aria-hidden="true">·</span> @L["Footer"]</span>
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">@L["NavPrivacy"]</a>
         </div>
     </footer>
+
+    <nav class="sb-tabbar d-sm-none" style="--n:@tabs.Count;--i:@Math.Max(tabIndex, 0)" data-none="@(tabIndex < 0 ? "true" : "false")" aria-label="@L["NavMenu"]">
+        <span class="sb-tab-ind" aria-hidden="true"></span>
+        @foreach (var tab in tabs)
+        {
+            <a class="sb-tab @(tab.Active ? "is-on" : "")" href="@tab.Url" aria-current="@(tab.Active ? "page" : null)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    @switch (tab.Icon)
+                    {
+                        case "home":
+                            <path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            break;
+                        case "order":
+                            <path d="M4 5h16l-1.5 10H5.5zM8 19a1.5 1.5 0 1 0 0 .01M16 19a1.5 1.5 0 1 0 0 .01" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                            break;
+                        case "orders":
+                            <path d="M7 3h10v18l-2.5-1.5L12 21l-2.5-1.5L7 21zM10 8h4M10 12h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                            break;
+                        case "dash":
+                            <path d="M4 20V10M10 20V4M16 20v-7M21 20H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            break;
+                        case "plus":
+                            <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                            break;
+                        default:
+                            <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c1-4.5 4-6 8-6s7 1.5 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            break;
+                    }
+                </svg>
+                <span>@L[tab.Label]</span>
+            </a>
+        }
+    </nav>
+
+    <button type="button" class="sb-top" id="sb-top" aria-label="@L["BackToTop"]" hidden>&uarr;</button>
+
+    <div class="sb-toasts" id="sb-toasts" aria-live="polite" data-close-label="@L["Close"]"></div>
+
+    <div class="modal fade" id="sb-confirm" tabindex="-1" aria-labelledby="sb-confirm-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h2 class="modal-title h5" id="sb-confirm-title">@L["ConfirmTitle"]</h2>
+                </div>
+                <div class="modal-body" data-confirm-text></div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@L["ConfirmNo"]</button>
+                    <button type="button" class="btn btn-primary" data-confirm-yes>@L["ConfirmYes"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

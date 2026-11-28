@@ -1,22 +1,31 @@
 @{
-    ViewData["Title"] = "Verify code";
+    ViewData["Title"] = L["VerifyTitle"];
 }
-<h1>Verify code</h1>
+<div class="sb-auth">
+    <div class="sb-auth-art" aria-hidden="true"><partial name="_Scene" model='"check"' /></div>
+    <div class="card">
+        <h1>@L["VerifyTitle"]</h1>
 
-@if (ViewData["Error"] != null)
-{
-    <div class="alert alert-danger">@ViewData["Error"]</div>
-}
-@if (ViewBag.DemoCode != null)
-{
-    <div class="alert alert-info">Demo code (no SMS/e-mail): <strong>@ViewBag.DemoCode</strong></div>
-}
+        @if (ViewData["Error"] != null)
+        {
+            <div class="alert alert-danger" role="alert">@ViewData["Error"]</div>
+        }
+        @if (ViewBag.DemoCode != null)
+        {
+            <div class="alert alert-info" role="status">
+                @L["VerifyDemoNote"]
+                <div class="sb-democode">@ViewBag.DemoCode</div>
+            </div>
+        }
 
-<form asp-action="Verify" method="post" class="col-md-5">
-    <input type="hidden" name="pendingId" value="@ViewBag.PendingId" />
-    <div class="mb-3">
-        <label class="form-label" for="code">6-digit code</label>
-        <input class="form-control" id="code" name="code" />
+        <form asp-action="Verify" method="post">
+            <input type="hidden" name="pendingId" value="@ViewBag.PendingId" />
+            <div class="mb-3">
+                <label class="form-label" for="code">@L["VerifyCodeLabel"]</label>
+                <input class="form-control sb-code-input" id="code" name="code" inputmode="numeric"
+                       maxlength="6" autocomplete="one-time-code" autofocus />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">@L["VerifyButton"]</button>
+        </form>
     </div>
-    <button type="submit" class="btn btn-primary">Verify</button>
-</form>
+</div>

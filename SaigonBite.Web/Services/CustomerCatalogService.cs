@@ -48,7 +48,7 @@ public sealed class CustomerCatalogService
         var hubs = await _db.Hubs.AsNoTracking()
             .Where(h => !h.IsDeleted).OrderBy(h => h.Id).ToListAsync();
         var busy = await _db.Orders.AsNoTracking()
-            .Where(o => o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Preparing)
+            .Where(o => HubLoad.BusyStatuses.Contains(o.Status))
             .GroupBy(o => o.HubId)
             .Select(g => new { HubId = g.Key, Count = g.Count() })
             .ToListAsync();

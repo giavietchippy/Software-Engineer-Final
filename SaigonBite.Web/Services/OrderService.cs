@@ -18,7 +18,10 @@ public sealed record PlaceOrderInput(
     IReadOnlyList<string>? VoucherCodes = null,
     string DeliveryAddress = "",
     string HotelName = "",
-    string RoomNumber = "");
+    string RoomNumber = "",
+    // Set only by the server (CheckoutDistanceService) after verifying its signed ticket.
+    // Never bound from a form field. Null means "ask IDistanceService" (service-level callers).
+    decimal? DistanceKm = null);
 
 public sealed record PreviewResult(
     bool Accepted,
@@ -260,11 +263,14 @@ public sealed class OrderService
 
         var subtotal = pricedLines.Sum(x => x.Item.Price * x.Quantity);
         var busy = await _db.Orders.AsNoTracking().CountAsync(o =>
-            o.HubId == hub.Id && (o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Preparing));
-        var load = HubLoad.Compute(busy, hub.Capacity); // BR8; the new order is not counted
+            o.HubId == hub.Id && HubLoad.BusyStatuses.Contains(o.Status));
+        var load = HubLoad.Compute(busy, hub.Capacity); // BR8: Placed + Confirmed + Preparing; the new order is not counted
         var placedAt = VietnamTime.FromUtc(_clock.UtcNow);
         var heavyRain = _settings.GetHeavyRain();      // FR-D14/BR5
-        var distanceKm = _distance.GetDistanceKm(hub.Id, input.District); // A-06
+        if (input.DistanceKm is <= 0m)
+            return new Preparation(null, null, "The delivery distance is invalid.");
+        // A-06: one distance per checkout. A verified ticket value wins so Preview and Place agree.
+        var distanceKm = input.DistanceKm ?? _distance.GetDistanceKm(hub.Id, input.District);
         var voucher = await ResolveVoucherAsync(input.VoucherCodes);      // A-11
 
         var pricing = _pricing.Calculate(new PricingInput(
