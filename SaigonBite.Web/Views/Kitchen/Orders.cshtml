@@ -1,0 +1,137 @@
+@model KitchenViewModel
+@{
+    ViewData["Title"] = L["KitchenTitle"];
+    var newCount = Model.Orders.Count(o => o.Status == OrderStatus.Placed);
+    var cookingCount = Model.Orders.Count(o => o.Status is OrderStatus.Confirmed or OrderStatus.Preparing);
+    var readyCount = Model.Orders.Count(o => o.Status == OrderStatus.Ready);
+}
+
+<div class="sb-page-head">
+    <div>
+        <h1>@L["KitchenTitle"]</h1>
+        @if (Model.HasHub)
+        {
+            <p>@L["OrderHub"]: <strong>@Model.HubName</strong></p>
+        }
+    </div>
+    @if (Model.HasHub)
+    {
+        <a asp-action="Orders" class="btn btn-outline-secondary">@L["Refresh"]</a>
+    }
+</div>
+
+<partial name="_StaffToast" />
+
+@if (!Model.HasHub)
+{
+    <div class="alert alert-warning" role="status">@L["KitchenNoHub"]</div>
+}
+else
+{
+    <div class="row g-3 mb-3">
+        <div class="col-4"><div class="sb-stat"><small>@L["KitchenStatNew"]</small><strong>@newCount</strong></div></div>
+        <div class="col-4"><div class="sb-stat"><small>@L["KitchenStatCooking"]</small><strong>@cookingCount</strong></div></div>
+        <div class="col-4"><div class="sb-stat"><small>@L["KitchenStatReady"]</small><strong>@readyCount</strong></div></div>
+    </div>
+
+    @if (Model.Orders.Count == 0)
+    {
+        <div class="sb-table-wrap">
+            <div class="sb-empty">
+                <partial name="_Scene" model='"empty-orders"' />
+                <strong>@L["KitchenEmpty"]</strong>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3" data-auto-refresh="30">
+            @foreach (var order in Model.Orders)
+            {
+                <div class="col-12 col-lg-6">
+                    <div class="card sb-staffcard h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                            <span class="fw-semibold">@L["OrderNumber"] #@order.Id</span>
+                            <partial name="_StatusBadge" model="order.Status" />
+                        </div>
+                        <div class="card-body">
+                            <div class="sb-staffmeta">
+                                <span>@order.PlacedAt.ToString("HH:mm dd/MM")</span>
+                                @if (order.Method is { } method)
+                                {
+                                    <span class="sb-pill">@L["Payment" + method]</span>
+                                }
+                            </div>
+                            <ul class="sb-staffitems">
+                                @foreach (var line in order.Lines)
+                                {
+                                    <li><span class="sb-qty">@line.Quantity ×</span> <span>@line.ItemName</span></li>
+                                }
+                            </ul>
+
+                            @switch (order.Status)
+                            {
+                                case OrderStatus.Placed:
+                                    <div class="d-flex flex-wrap gap-2 align-items-start">
+                                        <form asp-action="Advance" method="post">
+                                            <input type="hidden" name="id" value="@order.Id" />
+                                            <input type="hidden" name="to" value="@OrderStatus.Confirmed" />
+                                            <button type="submit" class="btn btn-primary">@L["KitchenConfirm"]</button>
+                                        </form>
+                                        <details class="sb-staffcancel">
+                                            <summary class="btn btn-outline-danger">@L["CancelOrder"]</summary>
+                                            <form asp-action="Cancel" method="post" class="mt-2" data-confirm="@L["ConfirmCancelOrder"]">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <label class="form-label" for="cancel-@order.Id">@L["ReasonRequired"]</label>
+                                                <input class="form-control mb-2" id="cancel-@order.Id" name="reason" required maxlength="200" autocomplete="off" />
+                                                <button type="submit" class="btn btn-danger">@L["CancelOrder"]</button>
+                                            </form>
+                                        </details>
+                                    </div>
+                                    break;
+                                case OrderStatus.Confirmed:
+                                    <form asp-action="Advance" method="post">
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <input type="hidden" name="to" value="@OrderStatus.Preparing" />
+                                        <button type="submit" class="btn btn-primary">@L["KitchenStartPrep"]</button>
+                                    </form>
+                                    break;
+                                case OrderStatus.Preparing:
+                                    <form asp-action="Advance" method="post">
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <input type="hidden" name="to" value="@OrderStatus.Ready" />
+                                        <button type="submit" class="btn btn-primary">@L["KitchenMarkReady"]</button>
+                                    </form>
+                                    break;
+                                default:
+                                    <p class="text-muted mb-0">
+                                        @L["KitchenWaitShipper"]
+                                        @if (!string.IsNullOrEmpty(order.ShipperName))
+                                        {
+                                            <span class="sb-pill sb-pill-accent ms-1">@order.ShipperName</span>
+                                        }
+                                    </p>
+                                    break;
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var box = document.querySelector('[data-auto-refresh]');
+            if (!box) return;
+            var seconds = parseInt(box.dataset.autoRefresh, 10) || 30;
+            setInterval(function () {
+                var busy = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+                var open = document.querySelector('.sb-staffcancel[open]');
+                if (!busy && !open && !document.hidden) window.location.reload();
+            }, seconds * 1000);
+        })();
+    </script>
+}

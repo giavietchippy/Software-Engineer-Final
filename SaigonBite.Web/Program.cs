@@ -86,6 +86,7 @@ builder.Services.AddScoped<CustomerCatalogService>();                 // FR-C1/C
 builder.Services.AddScoped<OrderService>();                            // BR12-BR17, A-11/A-12
 builder.Services.AddScoped<OrderStatusService>();                      // BR14-BR17, A-02/A-12/A-15
 builder.Services.AddScoped<ShipperAssignmentService>();                // A-01/A-04, BR14
+builder.Services.AddScoped<StaffOrderReadService>();                   // read-only lists for kitchen/shipper/admin screens
 builder.Services.AddSingleton<PasswordHasher<User>>();                  // BR18: random-salt hashing
 builder.Services.AddScoped<RegistrationService>();                     // BR18, A-08
 builder.Services.AddScoped<AccountManagementService>();                // BR18, A-09

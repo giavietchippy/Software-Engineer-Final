@@ -5,6 +5,8 @@
     var signedIn = User.Identity?.IsAuthenticated == true;
     var isCustomer = signedIn && (User.IsInRole("Local") || User.IsInRole("Tourist"));
     var isAdmin = signedIn && User.IsInRole("Admin");
+    var isKitchen = signedIn && User.IsInRole("KitchenStaff");
+    var isShipper = signedIn && User.IsInRole("Shipper");
     var adminShell = isAdmin && controller == "Admin";
     var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
@@ -25,7 +27,16 @@
     }
     else if (isAdmin)
     {
-        tabs.Add(("NavDashboard", Url.Action("Dashboard", "Admin") ?? "/", "dash", controller == "Admin"));
+        tabs.Add(("NavDashboard", Url.Action("Dashboard", "Admin") ?? "/", "dash", controller == "Admin" && action != "Orders"));
+        tabs.Add(("NavAdminOrders", Url.Action("Orders", "Admin") ?? "/", "orders", controller == "Admin" && action == "Orders"));
+    }
+    else if (isKitchen)
+    {
+        tabs.Add(("NavKitchen", Url.Action("Orders", "Kitchen") ?? "/", "orders", controller == "Kitchen"));
+    }
+    else if (isShipper)
+    {
+        tabs.Add(("NavDeliveries", Url.Action("Deliveries", "Shipper") ?? "/", "orders", controller == "Shipper"));
     }
     if (signedIn)
     {
@@ -106,6 +117,18 @@
                                 <a class="nav-link @Active("Admin")" asp-controller="Admin" asp-action="Dashboard">@L["NavAdmin"]</a>
                             </li>
                         }
+                        @if (isKitchen)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @Active("Kitchen")" asp-controller="Kitchen" asp-action="Orders">@L["NavKitchen"]</a>
+                            </li>
+                        }
+                        @if (isShipper)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @Active("Shipper")" asp-controller="Shipper" asp-action="Deliveries">@L["NavDeliveries"]</a>
+                            </li>
+                        }
                         @if (signedIn)
                         {
                             <li class="nav-item">
@@ -161,6 +184,8 @@
                         <p class="sb-side-title">@L["NavAdmin"]</p>
                         <a class="@Active("Admin", "Dashboard")" aria-current="@(Current("Admin", "Dashboard"))" asp-controller="Admin" asp-action="Dashboard">@L["NavDashboard"]</a>
                         <a class="@Active("Admin", "Accounts")" aria-current="@(Current("Admin", "Accounts"))" asp-controller="Admin" asp-action="Accounts">@L["NavAccounts"]</a>
+                        <a class="@Active("Admin", "Orders")" aria-current="@(Current("Admin", "Orders"))" asp-controller="Admin" asp-action="Orders">@L["NavAdminOrders"]</a>
+                        <a class="@Active("Admin", "Settings")" aria-current="@(Current("Admin", "Settings"))" asp-controller="Admin" asp-action="Settings">@L["NavSettings"]</a>
                     </aside>
                     <div>@RenderBody()</div>
                 </div>
