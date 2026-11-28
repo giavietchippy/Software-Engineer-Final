@@ -1,0 +1,69 @@
+@model EditItemsViewModel
+@{
+    ViewData["Title"] = L["EditTitle"];
+}
+
+<div class="sb-page-head">
+    <h1>@L["EditTitle"] — @L["OrderNumber"] #@Model.OrderId</h1>
+    <a asp-action="Track" asp-route-id="@Model.OrderId" class="btn btn-outline-secondary">@L["EditBack"]</a>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.Error))
+{
+    <div class="alert alert-danger" role="alert">@Model.Error</div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.Notice))
+{
+    <div class="alert alert-success" role="alert">@Model.Notice</div>
+}
+<div class="alert alert-info small" role="note">@L["ErrorLineRules"]</div>
+
+<div class="row">
+    <div class="col-12 col-lg-8">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" name="OrderId" value="@Model.OrderId" />
+            <div class="sb-table-wrap mb-3">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>@L["Item"]</th>
+                                <th class="text-end">@L["UnitPrice"]</th>
+                                <th class="text-center">@L["Qty"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.Lines.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">@Model.Lines[i].Name</div>
+                                        <div class="small text-muted">@L["Category" + Model.Lines[i].Category]</div>
+                                        <input type="hidden" name="Lines[@i].MenuItemId" value="@Model.Lines[i].MenuItemId" />
+                                        <input type="hidden" name="Lines[@i].Name" value="@Model.Lines[i].Name" />
+                                        <input type="hidden" name="Lines[@i].Category" value="@Model.Lines[i].Category" />
+                                        <input type="hidden" name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" />
+                                    </td>
+                                    <td class="text-end tabular">@Model.Lines[i].UnitPrice.ToString("N0")&nbsp;₫</td>
+                                    <td class="text-center">
+                                        <div class="sb-stepper mx-auto">
+                                            <button type="button" data-step="-1" aria-label="− @Model.Lines[i].Name">−</button>
+                                            <input type="number" min="1" max="20" step="1" inputmode="numeric"
+                                                   name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity"
+                                                   aria-label="@L["Qty"] - @Model.Lines[i].Name" />
+                                            <button type="button" data-step="1" aria-label="+ @Model.Lines[i].Name">+</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">@L["SaveChanges"]</button>
+                <a asp-action="Track" asp-route-id="@Model.OrderId" class="btn btn-outline-secondary">@L["EditBack"]</a>
+            </div>
+        </form>
+    </div>
+</div>

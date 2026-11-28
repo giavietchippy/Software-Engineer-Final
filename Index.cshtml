@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = L["HomeTitle"];
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var isCustomer = signedIn && (User.IsInRole("Local") || User.IsInRole("Tourist"));
+    var isAdmin = signedIn && User.IsInRole("Admin");
+}
+
+<section class="sb-hero">
+  <div class="sb-hero-text">
+    <h1>@L["HomeTitle"]</h1>
+    <p>@L["HomeIntro"]</p>
+    @if (isCustomer)
+    {
+        <a asp-controller="Order" asp-action="Hubs" class="btn btn-lg btn-primary">@L["NavOrder"]</a>
+        <a asp-controller="Order" asp-action="MyOrders" class="btn btn-lg btn-outline-secondary ms-1">@L["NavMyOrders"]</a>
+    }
+    else if (isAdmin)
+    {
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-lg btn-primary">@L["NavDashboard"]</a>
+    }
+    else if (signedIn)
+    {
+        <a asp-controller="Account" asp-action="Profile" class="btn btn-lg btn-primary">@L["NavProfile"]</a>
+        <div class="alert alert-info mt-3" role="status">@L["HomeStaffNote"]</div>
+    }
+    else
+    {
+        <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-primary">@L["NavLogin"]</a>
+        <a asp-controller="Account" asp-action="Register" class="btn btn-lg btn-outline-secondary ms-1">@L["NavRegister"]</a>
+    }
+  </div>
+  <div class="sb-hero-art" aria-hidden="true">
+    <div class="sb-hero-stage">
+      <partial name="_Scene" model='"bowl"' />
+      <span class="sb-hero-cup"><partial name="_Scene" model='"coffee"' /></span>
+      <span class="sb-hero-bike"><partial name="_Scene" model='"courier"' /></span>
+      <span class="sb-leaf sb-leaf-1"></span><span class="sb-leaf sb-leaf-2"></span><span class="sb-leaf sb-leaf-3"></span>
+    </div>
+  </div>
+</section>
+
+<section class="sb-rulecards" aria-label="@L["HomeRuleMinTitle"] / @L["HomeRuleRangeTitle"] / @L["HomeRuleQuietTitle"]">
+    <article class="sb-rule sb-rise" style="--i:0">
+        <span class="sb-rule-ico" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false"><path d="M7 4h18v24l-3-2-3 2-3-2-3 2-3-2-3 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11 11h10M11 16h10M11 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+        <h2>@L["HomeRuleMinTitle"]</h2>
+        <p>@L["HomeRuleMinText"]</p>
+    </article>
+    <article class="sb-rule sb-rise" style="--i:1">
+        <span class="sb-rule-ico" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false"><path d="M16 29s9-8.2 9-15a9 9 0 0 0-18 0c0 6.8 9 15 9 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </span>
+        <h2>@L["HomeRuleRangeTitle"]</h2>
+        <p>@L["HomeRuleRangeText"]</p>
+    </article>
+    <article class="sb-rule sb-rise" style="--i:2">
+        <span class="sb-rule-ico" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false"><path d="M6 26C6 14 14 6 27 5c0 13-8 21-19 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 26c4-7 9-11 15-14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        </span>
+        <h2>@L["HomeRuleQuietTitle"]</h2>
+        <p>@L["HomeRuleQuietText"]</p>
+    </article>
+</section>
