@@ -49,14 +49,19 @@ public sealed class CustomerPathIntegrationTests : IDisposable
 
         // Preview is a POST but writes nothing.
         var previewToken = WebForms.Token(checkoutHtml);
-        var preview = await client.PostAsync("/Order/Preview", WebForms.CheckoutPost(previewToken));
+        Assert.Contains("3.2 km", checkoutHtml);
+        var ticket = WebForms.Ticket(checkoutHtml);
+        var preview = await client.PostAsync("/Order/Preview",
+            WebForms.CheckoutPost(previewToken, distanceTicket: ticket));
         var previewHtml = await preview.Content.ReadAsStringAsync();
         Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
         Assert.Contains("205,000", previewHtml);
+        Assert.Contains("3.2 km", previewHtml); // Apply voucher keeps the same distance
 
         // Place uses the same server-calculated total and redirects to tracking.
         var placeToken = WebForms.Token(previewHtml);
-        var place = await client.PostAsync("/Order/Place", WebForms.CheckoutPost(placeToken));
+        var place = await client.PostAsync("/Order/Place",
+            WebForms.CheckoutPost(placeToken, distanceTicket: WebForms.Ticket(previewHtml)));
         Assert.Equal(HttpStatusCode.Found, place.StatusCode);
         Assert.Contains("/Order/Track/", place.Headers.Location?.ToString() ?? string.Empty);
 
@@ -65,6 +70,7 @@ public sealed class CustomerPathIntegrationTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, track.StatusCode);
         Assert.Contains("Placed", trackHtml);
         Assert.Contains("205,000", trackHtml);
+        Assert.Contains("3.2 km", trackHtml);
 
         using var db = _harness.NewContext();
         var localId = await db.Users.Where(u => u.Identifier == "0912345678")

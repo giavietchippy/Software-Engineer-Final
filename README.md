@@ -8,7 +8,7 @@ Pure C# class library with no web or database code, so the ASP.NET MVC project o
 | File | Covers |
 |---|---|
 | Pricing/PricingService.cs | BR1 to BR11 (BR10 calculation order) |
-| Pricing/HubLoad.cs | BR8 load definition |
+| Pricing/HubLoad.cs | BR8 load definition: Placed + Confirmed + Preparing orders / capacity (a new order makes the hub busier at once) |
 | Orders/OrderLineValidator.cs | BR12 |
 | Orders/OrderStateMachine.cs | BR14, BR15, BR16 |
 | Payments/* | BR13, BR14 (Strategy pattern) |
@@ -100,8 +100,14 @@ the injected clock (UTC+7) and the simulated distance, then calls `Core.PricingS
 and the first `null → Placed` history row inside one transaction (A-12). The customer's role is read from
 `Users`, never from the request. One voucher code is allowed; unknown/unusable codes give V = 0 plus a note.
 
-Distances come from the replaceable `DistanceService` (A-06): hub 1 + `District 1` = 3.2 km, while
-`District 7` is 10.5 km (out of coverage). Time comes from `IClock`; `SystemClock` is used in production
+Distances come from the replaceable `DistanceService` (A-06): a random value from 0.5 to 10.0 km (one
+decimal) taken from an injected `IRandomSource` (tests use a fixed source). `CheckoutDistanceService`
+draws it once when Checkout opens and seals it in a tamper-proof Data Protection ticket (hidden field
+`DistanceTicket`, bound to user and hub, 30 minutes), so "Apply voucher" and "Place order" keep the same
+km and price. A posted km value is ignored; a missing, forged or expired ticket is never used to place an
+order. The delivery radius is 10 km (BR2); delivery fee beyond 5 km is 30,000 + 7,000 per started km
+(8.0 km = 51,000, 10.0 km = 65,000). Hub load (BR8) counts Placed, Confirmed and Preparing orders; the hub
+page refreshes it every 10 s from `GET /Order/HubLoads` (customers only). Time comes from `IClock`; `SystemClock` is used in production
 and a fake in tests. `OrderStatusHistories.FromStatus` is nullable since Step D for the initial row
 (migration `20261126031657_MakeHistoryFromStatusNullable`).
 

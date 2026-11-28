@@ -2,9 +2,13 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SaigonBite.Web.Data;
+using SaigonBite.Web.Services;
 
 namespace SaigonBite.Web.Tests;
 
@@ -32,6 +36,12 @@ internal sealed class WebTestHarness : IDisposable
         Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment(environment);
+            // A-06: the real app draws a random km; HTTP tests pin it to 3.2 km (hub 1 price examples).
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<IRandomSource>();
+                services.AddSingleton<IRandomSource>(FixedRandomSource.ForKm(3.2m));
+            });
             builder.ConfigureAppConfiguration((_, cfg) =>
                 cfg.AddInMemoryCollection(new Dictionary<string, string?>
                 {
@@ -96,7 +106,8 @@ internal static class WebForms
         string paymentMethod = "Cod",
         string district = "District 1",
         bool touristClaimForgery = false,
-        IDictionary<string, string>? tamperedFields = null)
+        IDictionary<string, string>? tamperedFields = null,
+        string? distanceTicket = null)
     {
         var fields = new Dictionary<string, string>
         {
@@ -121,11 +132,25 @@ internal static class WebForms
             ["__RequestVerificationToken"] = token
         };
 
+        if (distanceTicket is not null) fields["DistanceTicket"] = distanceTicket;
+
         if (tamperedFields is not null)
             foreach (var (key, value) in tamperedFields) fields[key] = value;
 
         return new FormUrlEncodedContent(fields);
     }
+
+    /// <summary>The server-signed distance ticket rendered in the Checkout form (A-06).</summary>
+    public static string Ticket(string html)
+    {
+        var match = Regex.Match(html, "name=\"DistanceTicket\"[^>]*value=\"([^\"]*)\"");
+        if (!match.Success || match.Groups[1].Value.Length == 0)
+            throw new InvalidOperationException("No DistanceTicket in the Checkout page.");
+        return match.Groups[1].Value;
+    }
+
+    public static async Task<string> TicketFromAsync(HttpClient client, int hubId = 1) =>
+        Ticket(await (await client.GetAsync($"/Order/Checkout?hubId={hubId}")).Content.ReadAsStringAsync());
 
     public static async Task<string> TokenFromAsync(HttpClient client, string path)
     {

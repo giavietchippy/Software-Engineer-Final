@@ -8,7 +8,7 @@ namespace SaigonBite.Core.Pricing;
 public sealed class PricingService
 {
     public const decimal MinimumSubtotal = 50_000m;        // BR1
-    public const decimal MaxDistanceKm = 8.0m;             // BR2
+    public const decimal MaxDistanceKm = 10.0m;            // BR2: delivery radius is 10 km
     public const decimal FreeDeliveryThreshold = 300_000m; // BR6
     public const decimal QuietKitchenBelow = 0.30m;        // BR7: below 30 %
     public const decimal QuietKitchenRate = 0.10m;         // BR7
@@ -45,12 +45,18 @@ public sealed class PricingService
         return PricingResult.Ok(new PriceBreakdown(s, q, v, f, d, r, r2, raw, total, note));
     }
 
-    /// <summary>BR3: 15,000 up to 2 km; +5,000 per started km to 5 km; then +7,000 per started km to 8 km.</summary>
+    /// <summary>
+    /// BR3 (coverage up to MaxDistanceKm = 10 km):
+    /// 0-2 km: 15,000; 2-5 km: 15,000 + 5,000 per started km after 2 km (max 30,000);
+    /// 5-10 km: 30,000 + 7,000 per started km after 5 km. The 8-10 km band keeps the same
+    /// 7,000 per started km, so 8.0 km = 51,000, 9.0 km = 58,000, 10.0 km = 65,000.
+    /// Distances up to 8 km are priced exactly as before.
+    /// </summary>
     public static decimal DeliveryFee(decimal km)
     {
         if (km <= 2.0m) return 15_000m;
         if (km <= 5.0m) return 15_000m + 5_000m * Math.Ceiling(km - 2.0m);
-        return 30_000m + 7_000m * Math.Ceiling(km - 5.0m);
+        return 30_000m + 7_000m * Math.Ceiling(km - 5.0m); // also covers 8-10 km
     }
 
     /// <summary>BR4: [11:00, 13:00) and [17:30, 19:30). Start inclusive, end exclusive.</summary>

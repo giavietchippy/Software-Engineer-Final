@@ -93,7 +93,7 @@ public sealed class ReportService
                     confirmedToReady.Add(ready.ChangedAt - confirmed.ChangedAt);
             }
 
-            var busy = hubOrders.Count(o => o.Status is OrderStatus.Confirmed or OrderStatus.Preparing);
+            var busy = hubOrders.Count(o => HubLoad.BusyStatuses.Contains(o.Status));
             result.Add(new R2HubDto(
                 hub.Id, hub.Name, handled.Count,
                 confirmedToReady.Count == 0 ? null : TimeSpan.FromTicks((long)confirmedToReady.Average(t => t.Ticks)),

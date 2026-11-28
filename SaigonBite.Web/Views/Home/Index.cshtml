@@ -1,16 +1,94 @@
-﻿@{
+@{
     ViewData["Title"] = L["HomeTitle"];
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var isCustomer = signedIn && (User.IsInRole("Local") || User.IsInRole("Tourist"));
+    var isAdmin = signedIn && User.IsInRole("Admin");
+    var categories = new[] { "Noodles", "Rice", "Drinks", "Dessert" };
 }
 
-<div class="text-center py-5">
-    <h1 class="display-4">@L["HomeTitle"]</h1>
-    <p class="lead">@L["HomeIntro"]</p>
-    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Local") || User.IsInRole("Tourist")))
-    {
-        <a asp-controller="Order" asp-action="Hubs" class="btn btn-lg btn-danger">@L["NavOrder"]</a>
-    }
-    else
-    {
-        <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-danger">@L["NavLogin"]</a>
-    }
+<div class="sb-greet">
+    <div class="sb-greet-text">
+        @if (signedIn)
+        {
+            <small>@L["HomeGreeting"]</small>
+            <strong>@User.Identity!.Name</strong>
+        }
+        else
+        {
+            <small>@L["NavBrand"]</small>
+            <strong>@L["HomeTitle"]</strong>
+        }
+    </div>
+    @* Filled by site.js only if the person has already chosen a district at checkout (no new logic). *@
+    <a class="sb-deliverto" data-deliver-to hidden asp-controller="Order" asp-action="Hubs">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/></svg>
+        <span><small>@L["DeliverTo"]</small><strong data-deliver-to-text></strong></span>
+    </a>
 </div>
+
+<section class="sb-banner" aria-label="@L["HomeTitle"]">
+    <div class="sb-banner-media" data-img-base="/images/hero/hero" aria-hidden="true">
+        <div class="sb-hero-stage">
+            <partial name="_Scene" model='"bowl"' />
+            <span class="sb-hero-cup"><partial name="_Scene" model='"coffee"' /></span>
+            <span class="sb-hero-bike"><partial name="_Scene" model='"courier"' /></span>
+            <span class="sb-leaf sb-leaf-1"></span><span class="sb-leaf sb-leaf-2"></span><span class="sb-leaf sb-leaf-3"></span>
+        </div>
+    </div>
+    <div class="sb-banner-shade" aria-hidden="true"></div>
+    <div class="sb-banner-text">
+        <h1>@L["HomeTitle"]</h1>
+        <p>@L["HomeIntro"]</p>
+        @if (isCustomer)
+        {
+            <a asp-controller="Order" asp-action="Hubs" class="btn btn-lg btn-light sb-banner-cta">@L["HomeOrderNow"]</a>
+        }
+        else if (isAdmin)
+        {
+            <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-lg btn-light sb-banner-cta">@L["NavDashboard"]</a>
+        }
+        else if (signedIn)
+        {
+            <a asp-controller="Account" asp-action="Profile" class="btn btn-lg btn-light sb-banner-cta">@L["NavProfile"]</a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-light sb-banner-cta">@L["NavLogin"]</a>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-lg btn-outline-light ms-1">@L["NavRegister"]</a>
+        }
+    </div>
+</section>
+
+@if (signedIn && !isCustomer && !isAdmin)
+{
+    <div class="alert alert-info" role="status">@L["HomeStaffNote"]</div>
+}
+
+<section class="sb-cats-wrap" aria-label="@L["HomeCategories"]">
+    <h2 class="sb-sec-title">@L["HomeCategories"]</h2>
+    <div class="sb-cats">
+        @{ var ci = 0; }
+        @foreach (var cat in categories)
+        {
+            <a class="sb-cat sb-rise" style="--i:@(ci++)" asp-controller="Order" asp-action="Hubs">
+                <span class="sb-cat-ico"><partial name="_FoodArt" model="cat" /></span>
+                <span class="sb-cat-name">@L["Category" + cat]</span>
+            </a>
+        }
+    </div>
+</section>
+
+<section class="sb-infostrip" aria-label="@L["HomeRuleMinTitle"] / @L["HomeRuleRangeTitle"] / @L["HomeRuleQuietTitle"]">
+    <div class="sb-info">
+        <span class="sb-info-ico" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M7 4h18v24l-3-2-3 2-3-2-3 2-3-2-3 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11 11h10M11 16h10M11 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <div><strong>@L["HomeRuleMinTitle"]</strong><p>@L["HomeRuleMinText"]</p></div>
+    </div>
+    <div class="sb-info">
+        <span class="sb-info-ico" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M16 29s9-8.2 9-15a9 9 0 0 0-18 0c0 6.8 9 15 9 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+        <div><strong>@L["HomeRuleRangeTitle"]</strong><p>@L["HomeRuleRangeText"]</p></div>
+    </div>
+    <div class="sb-info">
+        <span class="sb-info-ico" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M6 26C6 14 14 6 27 5c0 13-8 21-19 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 26c4-7 9-11 15-14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>
+        <div><strong>@L["HomeRuleQuietTitle"]</strong><p>@L["HomeRuleQuietText"]</p></div>
+    </div>
+</section>

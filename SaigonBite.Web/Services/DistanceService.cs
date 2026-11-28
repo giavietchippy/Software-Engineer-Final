@@ -1,37 +1,41 @@
 namespace SaigonBite.Web.Services;
 
-/// <summary>A-06: simulated hub-to-district distance. Replace this one class for a real map API.</summary>
+/// <summary>Source of randomness, injected so tests can replace it with a fixed value.</summary>
+public interface IRandomSource
+{
+    /// <summary>A value in [0.0, 1.0).</summary>
+    double NextDouble();
+}
+
+public sealed class SystemRandomSource : IRandomSource
+{
+    public double NextDouble() => Random.Shared.NextDouble(); // thread-safe
+}
+
+/// <summary>A-06: simulated hub-to-address distance. Replace this one class for a real map API.</summary>
 public interface IDistanceService
 {
     decimal GetDistanceKm(int hubId, string district);
 }
 
+/// <summary>
+/// Simulated distance: a random value in [MinKm, MaxKm] km rounded to 1 decimal place.
+/// Callers must draw it once per checkout and keep it (see CheckoutDistanceService);
+/// this class never calls System.Random directly.
+/// </summary>
 public sealed class DistanceService : IDistanceService
 {
-    private const decimal OutOfCoverageFallback = 9.0m; // > BR2's 8 km limit
+    public const decimal MinKm = 0.5m;
+    public const decimal MaxKm = 10.0m; // equals PricingService.MaxDistanceKm (BR2)
 
-    // Deterministic demo lookup. District names are case-insensitive.
-    private static readonly Dictionary<int, Dictionary<string, decimal>> Lookup = new()
+    private readonly IRandomSource _random;
+
+    public DistanceService(IRandomSource random) => _random = random;
+
+    public decimal GetDistanceKm(int hubId, string district)
     {
-        [1] = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["District 1"] = 3.2m, ["District 2"] = 5.0m, ["Binh Thanh"] = 1.5m,
-            ["Thu Duc"] = 7.0m, ["District 7"] = 10.5m
-        },
-        [2] = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Binh Thanh"] = 1.0m, ["District 1"] = 2.5m, ["Thu Duc"] = 4.0m,
-            ["District 7"] = 9.2m
-        },
-        [3] = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Thu Duc"] = 1.2m, ["District 1"] = 6.8m, ["District 7"] = 8.5m
-        }
-    };
-
-    public decimal GetDistanceKm(int hubId, string district) =>
-        Lookup.TryGetValue(hubId, out var byDistrict)
-        && byDistrict.TryGetValue(district ?? string.Empty, out var km)
-            ? km
-            : OutOfCoverageFallback;
+        var fraction = Math.Clamp(_random.NextDouble(), 0.0, 1.0);
+        var km = MinKm + (decimal)fraction * (MaxKm - MinKm);
+        return Math.Clamp(Math.Round(km, 1, MidpointRounding.AwayFromZero), MinKm, MaxKm);
+    }
 }

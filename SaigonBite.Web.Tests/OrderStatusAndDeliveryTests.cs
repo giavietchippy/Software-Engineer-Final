@@ -43,7 +43,8 @@ public sealed class OrderStatusAndDeliveryTests : IDisposable
     private ShipperAssignmentService Delivery => new(_db, _clock);
 
     private OrderService Orders => new(_db, new PricingService(), Payments(),
-        new SettingsService(_db, _clock), _clock, new DistanceService());
+        new SettingsService(_db, _clock), _clock,
+        FixedRandomSource.DistanceOf(3.2m));
 
     private static PaymentContext Payments() => new(new IPaymentStrategy[]
     {

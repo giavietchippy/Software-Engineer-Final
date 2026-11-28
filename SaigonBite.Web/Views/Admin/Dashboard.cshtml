@@ -1,38 +1,84 @@
 @{
-    ViewData["Title"] = "Admin dashboard";
+    ViewData["Title"] = L["DashTitle"];
 }
 @* N-03: Chart.js 4.4.1 is vendored under wwwroot/lib, so the dashboard works offline. *@
-<h1>Admin dashboard (FR-R3)</h1>
 
-<div class="row mb-3 g-2">
-    <div class="col-md-3">
-        <label class="form-label" for="from">From</label>
-        <input class="form-control" type="date" id="from" />
-    </div>
-    <div class="col-md-3">
-        <label class="form-label" for="to">To</label>
-        <input class="form-control" type="date" id="to" />
-    </div>
-    <div class="col-md-3 align-self-end">
-        <button class="btn btn-primary" id="refresh">Refresh</button>
+<div class="sb-page-head">
+    <div>
+        <h1>@L["DashTitle"]</h1>
+        <p>@L["DashSubtitle"]</p>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6"><canvas id="categoryChart"></canvas></div>
-    <div class="col-md-6"><canvas id="methodChart"></canvas></div>
+<div class="card mb-3">
+    <div class="card-body row g-2 align-items-end">
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="from">@L["DashFrom"]</label>
+            <input class="form-control" type="date" id="from" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label" for="to">@L["DashTo"]</label>
+            <input class="form-control" type="date" id="to" />
+        </div>
+        <div class="col-12 col-md-3">
+            <button type="button" class="btn btn-primary w-100" id="refresh">@L["DashRefresh"]</button>
+        </div>
+    </div>
 </div>
 
-<h2 class="mt-4">Current hub load</h2>
-<table class="table table-sm col-md-6">
-    <thead><tr><th>Hub</th><th>Load</th></tr></thead>
-    <tbody id="loadBody"></tbody>
-</table>
+<div id="dash" class="sb-loading is-loading"
+     data-empty="@L["DashNoData"]" data-error="@L["DashLoadError"]"
+     data-label-category="@L["DashRevenueCategory"]" data-label-method="@L["DashRevenueMethod"]"
+     data-cat-noodles="@L["CategoryNoodles"]" data-cat-rice="@L["CategoryRice"]"
+     data-cat-drinks="@L["CategoryDrinks"]" data-cat-dessert="@L["CategoryDessert"]"
+     data-pay-0="@L["PaymentMomo"]" data-pay-1="@L["PaymentVnPay"]" data-pay-2="@L["PaymentApplePay"]"
+     data-pay-3="@L["PaymentPayPal"]" data-pay-4="@L["PaymentCod"]">
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4"><div class="sb-stat"><small>@L["DashTotalRevenue"]</small><strong id="statTotal">–</strong></div></div>
+        <div class="col-12 col-md-4"><div class="sb-stat"><small>@L["DashTopCategory"]</small><strong id="statTop">–</strong></div></div>
+        <div class="col-12 col-md-4"><div class="sb-stat"><small>@L["DashBusiestHub"]</small><strong id="statHub">–</strong></div></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">@L["DashRevenueCategory"]</div>
+                <div class="card-body">
+                    <div class="sb-chart"><canvas id="categoryChart"></canvas></div>
+                    <p class="sb-empty d-none" id="categoryEmpty">@L["DashNoData"]</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">@L["DashRevenueMethod"]</div>
+                <div class="card-body">
+                    <div class="sb-chart"><canvas id="methodChart"></canvas></div>
+                    <p class="sb-empty d-none" id="methodEmpty">@L["DashNoData"]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">@L["DashHubLoad"]</div>
+        <div class="card-body" id="loadBody"></div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="~/lib/chart.js/4.4.1/chart.umd.min.js"></script>
     <script>
         (function () {
+            const root = document.getElementById('dash');
+            const t = root.dataset;
+            const number = new Intl.NumberFormat(document.documentElement.lang || 'en');
+            const money = v => number.format(v) + '\u00a0\u20ab';
+            const accent = '#D43B10', ink = '#201C19';
+            const catName = c => t['cat' + c] || c;       // data-cat-noodles etc.
+            const payName = m => t['pay' + (typeof m === 'number' ? m : ['Momo','VnPay','ApplePay','PayPal','Cod'].indexOf(m))] || String(m);
+
             const day = 24 * 60 * 60 * 1000;
             const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
             const today = new Date();
@@ -43,40 +89,77 @@
             const query = () => '?from=' + encodeURIComponent(document.getElementById('from').value)
                 + '&to=' + encodeURIComponent(document.getElementById('to').value);
 
+            function draw(canvasId, emptyId, current, labels, values, label) {
+                if (current) current.destroy();
+                const canvas = document.getElementById(canvasId);
+                const empty = document.getElementById(emptyId);
+                const none = values.length === 0;
+                canvas.parentElement.classList.toggle('d-none', none);
+                empty.classList.toggle('d-none', !none);
+                if (none) return null;
+                return new Chart(canvas, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: label, data: values, backgroundColor: accent, borderRadius: 4, maxBarThickness: 56 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        animation: { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900, easing: 'easeOutQuart' },
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => money(c.parsed.y) } } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: ink } },
+                            y: { beginAtZero: true, ticks: { color: ink, callback: v => number.format(v) } }
+                        }
+                    }
+                });
+            }
+
             async function refresh() {
-                const q = query();
-                const [byCategory, byMethod, loads] = await Promise.all([
-                    fetch('@Url.Action("RevenueByCategory", "Admin")' + q).then(r => r.json()),
-                    fetch('@Url.Action("RevenueByMethod", "Admin")' + q).then(r => r.json()),
-                    fetch('@Url.Action("CurrentHubLoad", "Admin")').then(r => r.json())
-                ]);
+                const btn = document.getElementById('refresh');
+                root.classList.add('is-loading');
+                btn.classList.add('is-busy');
+                try {
+                    const q = query();
+                    const get = u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+                    const [byCategory, byMethod, loads] = await Promise.all([
+                        get('@Url.Action("RevenueByCategory", "Admin")' + q),
+                        get('@Url.Action("RevenueByMethod", "Admin")' + q),
+                        get('@Url.Action("CurrentHubLoad", "Admin")')
+                    ]);
 
-                if (categoryChart) categoryChart.destroy();
-                categoryChart = new Chart(document.getElementById('categoryChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: byCategory.map(x => x.category),
-                        datasets: [{ label: 'Revenue by category (VND)', data: byCategory.map(x => x.revenue) }]
-                    }
-                });
+                    categoryChart = draw('categoryChart', 'categoryEmpty', categoryChart,
+                        byCategory.map(x => catName(x.category)), byCategory.map(x => x.revenue), t.labelCategory);
+                    methodChart = draw('methodChart', 'methodEmpty', methodChart,
+                        byMethod.map(x => payName(x.method)), byMethod.map(x => x.revenue), t.labelMethod);
 
-                if (methodChart) methodChart.destroy();
-                methodChart = new Chart(document.getElementById('methodChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: byMethod.map(x => 'Method ' + x.method),
-                        datasets: [{ label: 'Revenue by payment method (VND)', data: byMethod.map(x => x.revenue) }]
-                    }
-                });
+                    const total = byCategory.reduce((s, x) => s + x.revenue, 0);
+                    const top = byCategory.slice().sort((a, b) => b.revenue - a.revenue)[0];
+                    document.getElementById('statTotal').textContent = byCategory.length ? money(total) : '–';
+                    document.getElementById('statTop').textContent = top ? catName(top.category) : '–';
+                    const busiest = loads.slice().sort((a, b) => b.currentLoad - a.currentLoad)[0];
+                    document.getElementById('statHub').textContent = busiest
+                        ? busiest.hubName + ' · ' + Math.round(busiest.currentLoad * 100) + '%' : '–';
 
-                const body = document.getElementById('loadBody');
-                body.innerHTML = '';
-                loads.forEach(l => {
-                    const row = document.createElement('tr');
-                    const name = document.createElement('td'); name.textContent = l.hubName;
-                    const load = document.createElement('td'); load.textContent = l.currentLoad;
-                    row.appendChild(name); row.appendChild(load); body.appendChild(row);
-                });
+                    const body = document.getElementById('loadBody');
+                    body.innerHTML = '';
+                    loads.forEach(l => {
+                        const pct = Math.max(0, Math.min(100, Math.round(l.currentLoad * 100)));
+                        const row = document.createElement('div'); row.className = 'sb-hubrow';
+                        const name = document.createElement('span'); name.textContent = l.hubName; name.className = 'fw-semibold';
+                        const meter = document.createElement('div');
+                        meter.className = 'sb-meter';
+                        meter.setAttribute('role', 'meter'); meter.setAttribute('aria-valuenow', pct);
+                        meter.setAttribute('aria-valuemin', 0); meter.setAttribute('aria-valuemax', 100);
+                        const fill = document.createElement('span'); fill.style.setProperty('--w', pct + '%');
+                        meter.appendChild(fill);
+                        const val = document.createElement('span'); val.className = 'tabular'; val.textContent = pct + '%';
+                        row.appendChild(name); row.appendChild(meter); row.appendChild(val);
+                        body.appendChild(row);
+                    });
+                } catch (err) {
+                    if (window.sbToast) window.sbToast(t.error, 'error', 6000);
+                } finally {
+                    root.classList.remove('is-loading');
+                    btn.classList.remove('is-busy');
+                }
             }
 
             document.getElementById('refresh').addEventListener('click', refresh);

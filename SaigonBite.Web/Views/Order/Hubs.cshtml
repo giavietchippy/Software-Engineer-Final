@@ -1,12 +1,13 @@
 @model HubsViewModel
 @{
     ViewData["Title"] = L["HubsTitle"];
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
 }
 
-<div class="row">
-    <div class="col-12">
-        <h1 class="h3 mb-2">@L["HubsTitle"]</h1>
-        <p class="text-muted">@L["HubsSubtitle"]</p>
+<div class="sb-page-head">
+    <div>
+        <h1>@L["HubsTitle"]</h1>
+        <p>@L["HubsSubtitle"]</p>
     </div>
 </div>
 
@@ -15,30 +16,41 @@
     <div class="alert alert-warning" role="alert">@L["HubNoHubs"]</div>
 }
 
-<div class="row g-3">
+@* Live load: site.js polls this endpoint every 10 s and updates the meters (no reload needed). *@
+<div class="sb-shops" id="sb-hubs" data-loads-url="@Url.Action("HubLoads", "Order")" data-poll-ms="10000">
+    @{ var hubIndex = 0; }
     @foreach (var hub in Model.Hubs)
     {
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 @(hub.IsBusy ? "border-secondary bg-light text-muted" : "")">
-                <div class="card-body d-flex flex-column">
-                    <h2 class="h5 card-title">@hub.Name</h2>
-                    <p class="mb-1"><strong>@L["HubLoad"]:</strong> @hub.Load.ToString("P0") (@hub.Busy/@hub.Capacity)</p>
-                    <p class="mb-2"><strong>@L["HubCapacity"]:</strong> @hub.Capacity</p>
-                    @if (hub.IsQuiet && !hub.IsBusy)
-                    {
-                        <span class="badge bg-success align-self-start mb-2">@L["HubQuiet"]</span>
-                    }
-                    @if (hub.IsBusy)
-                    {
-                        <span class="badge bg-secondary align-self-start mb-2">@L["HubBusy"]</span>
-                        <div class="alert alert-secondary small" role="alert">@L["HubBusyMessage"]</div>
-                    }
-                    else
-                    {
-                        <a asp-controller="Order" asp-action="Menu" asp-route-hubId="@hub.Id" class="btn btn-primary mt-auto">@L["HubOpen"]</a>
-                    }
+        var pct = (hub.Load * 100m).ToString("0.##", inv) + "%";
+        var ratio = Math.Min(1m, hub.Load).ToString("0.####", inv);
+        <article class="sb-hub sb-shop sb-rise @(hub.IsBusy ? "is-busy" : "")" style="--i:@(hubIndex++)"
+                 data-hub-id="@hub.Id">
+            <div class="sb-shop-img" data-img-base="/images/hubs/@hub.Id" aria-hidden="true">
+                <partial name="_Scene" model='"kitchen"' />
+            </div>
+            <div class="sb-shop-body">
+                <div class="sb-shop-top">
+                    <h2 class="sb-hub-name">@hub.Name</h2>
+                    <span class="sb-pill sb-pill-bad" data-hub-pill="busy" hidden="@(hub.IsBusy ? null : "hidden")">@L["HubBusy"]</span>
+                    <span class="sb-pill sb-pill-ok" data-hub-pill="quiet" hidden="@(!hub.IsBusy && hub.IsQuiet ? null : "hidden")">@L["HubQuiet"]</span>
+                </div>
+                <div class="sb-meter @(hub.IsBusy ? "is-busy" : hub.IsQuiet ? "is-quiet" : "")" data-meter data-w="@pct"
+                     style="--w:@pct;--s:@ratio" role="meter" aria-valuemin="0" aria-valuemax="100"
+                     aria-valuenow="@((hub.Load * 100m).ToString("0", inv))"
+                     aria-label="@L["HubLoad"]">
+                    <span></span>
+                </div>
+                <div class="sb-meter-label">
+                    <span>@L["HubLoad"]: <strong data-hub-pct>@hub.Load.ToString("P0")</strong></span>
+                    <span data-hub-count>@hub.Busy / @hub.Capacity</span>
+                </div>
+                <div class="sb-shop-foot">
+                    <div class="small text-muted sb-hub-busynote" role="note" data-hub-busy-note hidden="@(hub.IsBusy ? null : "hidden")">@L["HubBusyMessage"]</div>
+                    <a asp-controller="Order" asp-action="Menu" asp-route-hubId="@hub.Id" class="btn btn-primary btn-sm"
+                       data-hub-open hidden="@(hub.IsBusy ? "hidden" : null)">@L["HubOpen"]</a>
+                    <span class="btn btn-secondary btn-sm disabled" aria-disabled="true" data-hub-closed hidden="@(hub.IsBusy ? null : "hidden")">@L["HubOpen"]</span>
                 </div>
             </div>
-        </div>
+        </article>
     }
 </div>
